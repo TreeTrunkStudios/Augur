@@ -8,7 +8,7 @@ public class CornersOfTheEarth : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[]{"Core", "CoreUObject", "Engine", "InputCore", "GameSettingsSubsystem", "AdvancedSettingsUserInterface", "AdvancedSaveGameSubsystem" });
+		PublicDependencyModuleNames.AddRange(new string[]{"Core", "CoreUObject", "Engine", "InputCore", "GameSettingsSubsystem", "AdvancedSettingsUserInterface", "AdvancedSaveGameSubsystem", "EnhancedInput"});
 
 		PrivateDependencyModuleNames.AddRange(new string[]{});
 

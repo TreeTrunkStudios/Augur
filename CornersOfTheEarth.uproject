@@ -1,13 +1,17 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{5D598DD7-45E2-2DE9-88FF-F79EF5608E2C}",
+	"EngineAssociation": "{113C7BC5-49A4-5CB5-F26B-53A5BBDBC432}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
 			"Name": "CornersOfTheEarth",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"EnhancedInput"
+			]
 		},
 		{
 			"Name": "GameSettingsSubsystem",
@@ -30,7 +34,8 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"CoreUObject"
 			]
 		}
 	],
@@ -372,6 +377,17 @@
 		{
 			"Name": "VictoryBPLibrary",
 			"Enabled": true
+		},
+		{
+			"Name": "WorldPartitionHLODUtilities",
+			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Linux",
+		"Windows",
+		"LinuxArm64",
+		"Mac",
+		"HoloLens"
 	]
 }
