@@ -1,106 +1,19 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// TreeTrunkStudios (c) 2023
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/EngineSubsystem.h"
+#include "SettingsOptionsStruct.h"
 #include "GameSettingsSubsystem.generated.h"
 
 
 // 
-struct ControlSettingsStruct {
-
-	// 
-	//
-};
+typedef TUnion<bool, int32, float, FString> SettingsDataUnion;
 
 
 // 
-DECLARE_MULTICAST_DELEGATE_OneParam(FControlSettingsUpdate, const ControlSettingsStruct&);
-
-
-// 
-struct GameplaySettingsStruct {
-
-	// 
-	//
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FGameplaySettingsUpdate, const GameplaySettingsStruct&);
-
-
-// 
-struct LanguageSettingsStruct {
-
-	// 
-	//
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FLanguageSettingsUpdate, const LanguageSettingsStruct&);
-
-
-// 
-struct AccessibilitySettingsStruct {
-
-	// 
-	//
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FAccessibilitySettingsUpdate, const AccessibilitySettingsStruct&);
-
-
-// 
-struct DebugSettingsStruct {
-
-	// 
-	//
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FDebugSettingsUpdate, const DebugSettingsStruct&);
-
-
-// 
-struct AudioSettingsStruct {
-
-	// 
-	//
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FAudioSettingsUpdate, const AudioSettingsStruct&);
-
-
-// 
-struct DisplaySettingsStruct {
-
-	// 
-	//
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FDisplaySettingsUpdate, const DisplaySettingsStruct&);
-
-
-// 
-struct GraphicsSettingsStruct {
-
-	// 
-	// 
-};
-
-
-// 
-DECLARE_MULTICAST_DELEGATE_OneParam(FGraphicsSettingsUpdate, const GraphicsSettingsStruct&);
+typedef TMulticastDelegate<void(const TMap<FName, SettingsDataUnion>&)> FSettingsUpdate;
 
 
 // Subsystem which handles all game settings, both in setting and getting them, in a simplistic, thread-safe singleton way
@@ -108,6 +21,35 @@ UCLASS()
 class GAMESETTINGSSUBSYSTEM_API UGameSettingsSubsystem final : public UEngineSubsystem
 {
 	GENERATED_BODY()
+
+
+// 
+public:
+
+	// 
+	FSettingsUpdate ControlSettingsUpdate;
+
+	// 
+	FSettingsUpdate GameplaySettingsUpdate;
+
+	// 
+	FSettingsUpdate LanguageSettingsUpdate;
+
+	// 
+	FSettingsUpdate AccessibilitySettingsUpdate;
+
+	// 
+	FSettingsUpdate DebugSettingsUpdate;
+
+	// 
+	FSettingsUpdate AudioSettingsUpdate;
+
+	// 
+	FSettingsUpdate DisplaySettingsUpdate;
+
+	// 
+	FSettingsUpdate GraphicsSettingsUpdate;
+
 	
 //
 public:
@@ -119,9 +61,11 @@ public:
 	virtual void Deinitialize() override;
 
 	// Function which forces saving the data to a local file
+	UFUNCTION(BlueprintCallable)
 	void ForceSave();
 
 	// Function which forces saving the data to a local file
+	UFUNCTION(BlueprintCallable)
 	void ForceLoad();
 
 
@@ -132,34 +76,40 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentGameID(const FString & NewGameID);
 
+	// 
+	UFUNCTION(BlueprintCallable)
+	const FUnionDataStruct GetSettingData(FName SectionName, FName VariableName);
+
+	// 
+	UFUNCTION(BlueprintCallable)
+	void SetSettingData(FName SectionName, FName VariableName, FUnionDataStruct VariableData);
+
+	// 
+	const bool DoesSettingExist(FName SectionName, FName VariableName) {
+		return (SettingsMap.Contains(SectionName) && SettingsMap.FindChecked(SectionName).Contains(VariableName));
+	}
+
+	// 
+	const SettingsDataUnion GetSettingData_Internal(FName SectionName, FName VariableName) {
+		return SettingsMap.FindChecked(SectionName).FindChecked(VariableName);
+	}
+
+	// 
+	template<typename Type>
+	void SetSettingData_Internal(FName SectionName, FName VariableName, Type NewData) {
+		SettingsMap.FindOrAdd(SectionName).FindOrAdd(VariableName).SetSubtype<Type>(NewData);
+	}
+
 
 // 
 private:
 
 	// 
-	FString CurrentSaveGameID{TEXT("_DEFAULT")};
+	FString CurrentSaveGameID;
 
 	// 
-	ControlSettingsStruct ControlSettings;
+	FString CurrentIniFileName;
 
 	// 
-	GameplaySettingsStruct GameplaySettings;
-
-	// 
-	LanguageSettingsStruct LanguageSettings;
-
-	// 
-	AccessibilitySettingsStruct AccessibilitySettings;
-
-	// 
-	DebugSettingsStruct DebugSettings;
-
-	// 
-	AudioSettingsStruct AudioSettings;
-
-	// 
-	DisplaySettingsStruct DisplaySettings;
-
-	// 
-	GraphicsSettingsStruct GraphicsSettings;
+	TMap<FName, TMap<FName, SettingsDataUnion>> SettingsMap;
 };
