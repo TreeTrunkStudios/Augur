@@ -38,6 +38,7 @@ APlayableAbstractCharacter::APlayableAbstractCharacter() {
 	// Collect the wanted input actions from blueprints at constructor time and store them as raw pointers (as they should always be valid objects 24/7)
 	InputActionMovement = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Script/EnhancedInput.InputAction'/Game/InputSystem/InputActionsCharacter/Movement.Movement'")).Object;
 	InputActionLooking = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Script/EnhancedInput.InputAction'/Game/InputSystem/InputActionsCharacter/Looking.Looking'")).Object;
+	InputActionMouseLooking = ConstructorHelpers::FObjectFinder<UInputAction>(TEXT("/Script/EnhancedInput.InputAction'/Game/InputSystem/InputActionsCharacter/MouseLooking.MouseLooking'")).Object;
 }
 
 
@@ -59,7 +60,7 @@ void APlayableAbstractCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 	// 
-	// 
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Emerald, FString(TEXT("WorldPosition - ")) + this->GetActorLocation().ToString());
 }
 
 
@@ -70,7 +71,10 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	// Get the local player subsystem
-	UEnhancedInputLocalPlayerSubsystem* InputSubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(GetController())->GetLocalPlayer());
+	UEnhancedInputLocalPlayerSubsystem * InputSubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(GetController())->GetLocalPlayer());
+
+	// 
+	ensureAlways(InputSubSystem != nullptr);
 
 	// Clear out existing mapping, and add our mapping
 	InputSubSystem->ClearAllMappings();
@@ -82,6 +86,7 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 	// Attach all necessary input functions to their target actions
 	EnhancedInput->BindAction(InputActionMovement, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::HandleMovementInput);
 	EnhancedInput->BindAction(InputActionLooking, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::HandleLookingInput);
+	EnhancedInput->BindAction(InputActionMouseLooking, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::HandleLookingInput);
 }
 
 

@@ -16,7 +16,7 @@
 
 //
 UCLASS()
-class CORNERSOFTHEEARTH_API APlayableAbstractCharacter : public AAbstractCharacter, public ICharacterData {
+class ADVANCEDMOVEMENTSYSTEM_API APlayableAbstractCharacter : public AAbstractCharacter, public ICharacterData {
 	GENERATED_BODY()
 
 
@@ -41,6 +41,7 @@ protected:
 	// 
 	UInputAction * InputActionMovement = nullptr;
 	UInputAction * InputActionLooking = nullptr;
+	UInputAction * InputActionMouseLooking = nullptr;
 
 
 // 

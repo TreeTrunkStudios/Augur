@@ -45,7 +45,7 @@ public:
 
 // 
 UCLASS()
-class CORNERSOFTHEEARTH_API AAbstractCharacter : public APawn {
+class ADVANCEDMOVEMENTSYSTEM_API AAbstractCharacter : public APawn {
 	GENERATED_BODY()
 
 

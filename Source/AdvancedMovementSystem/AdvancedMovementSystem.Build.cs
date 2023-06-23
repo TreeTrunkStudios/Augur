@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class CornersOfTheEarth : ModuleRules
+public class AdvancedMovementSystem : ModuleRules
 {
-	public CornersOfTheEarth(ReadOnlyTargetRules Target) : base(Target)
+	public AdvancedMovementSystem(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
