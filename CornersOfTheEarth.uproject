@@ -82,10 +82,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "IKRig",
-			"Enabled": false
-		},
-		{
 			"Name": "SequencerAnimTools",
 			"Enabled": false
 		},

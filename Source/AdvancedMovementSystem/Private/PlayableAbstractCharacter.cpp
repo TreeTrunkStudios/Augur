@@ -19,11 +19,6 @@ APlayableAbstractCharacter::APlayableAbstractCharacter() {
 	PrimaryActorTick.TickGroup = ETickingGroup::TG_PrePhysics;
 	PrimaryActorTick.EndTickGroup = ETickingGroup::TG_StartPhysics;
 
-	// Create and initialize the player camera component
-	RotatorComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("RotatorComponent"));
-	RotatorComponent->SetupAttachment(this->RootComponent);
-	RotatorComponent->SetRelativeTransform(FTransform::Identity);
-
 	// 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->SetupAttachment(this->RotatorComponent);
@@ -56,11 +51,17 @@ void APlayableAbstractCharacter::BeginPlay() {
 // Called every frame
 void APlayableAbstractCharacter::Tick(float DeltaTime) {
 
+	// TODO: Implement functionality that is player specific, such as...
+	//     Placeholder
+
 	// Call parent class' tick functionality first
 	Super::Tick(DeltaTime);
 
 	// 
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Emerald, FString(TEXT("WorldPosition - ")) + this->GetActorLocation().ToString());
+	RotatorComponent->SetWorldLocation(CharacterSkeleton->GetSocketLocation(FName(TEXT("Head"))));
+
+	// 
+	PlayerCamera->SetRelativeLocation(FMath::VInterpTo(PlayerCamera->GetRelativeLocation(), (IsThirdPerson ? ThirdPersonCameraOffset : FirstPersonCameraOffset), DeltaTime, 5.0f));
 }
 
 
@@ -87,6 +88,15 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 	EnhancedInput->BindAction(InputActionMovement, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::HandleMovementInput);
 	EnhancedInput->BindAction(InputActionLooking, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::HandleLookingInput);
 	EnhancedInput->BindAction(InputActionMouseLooking, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::HandleLookingInput);
+
+	// 
+	EnhancedInput->BindAction(InputActionChangeGait, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::ToggleGait);
+
+	// 
+	EnhancedInput->BindAction(InputActionChangeStance, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::ToggleStance);
+
+	// 
+	EnhancedInput->BindAction(InputActionChangeSprint, ETriggerEvent::Triggered, this, &APlayableAbstractCharacter::ToggleSprint);
 }
 
 
@@ -117,21 +127,24 @@ void APlayableAbstractCharacter::HandleLookingInput(const FInputActionInstance &
 	FVector2D LookingInputVector2D = Instance.GetValue().Get<FVector2D>();
 	
 	// Apply the given yaw rotation to the actor as a whole, rotating us in world space
-	this->RotatorComponent->AddLocalRotation(FRotator(0.0, LookingInputVector2D.X, 0.0));
+	this->RotatorComponent->AddRelativeRotation(FRotator(0.0, LookingInputVector2D.X, 0.0));
 
 	// Lastly, apply the given pitch to just the camera, as it is the only thing that needs to rotate on that axis, while also clamping the value (no rotating your head broken)
-	double LocalCameraPitch = (this->PlayerCamera->GetRelativeRotation().Pitch + LookingInputVector2D.Y);
+	double LocalCameraPitch = (this->PlayerCamera->GetComponentRotation().Pitch + LookingInputVector2D.Y);
 	this->PlayerCamera->SetRelativeRotation(FRotator(FMath::Clamp(LocalCameraPitch, -90.0, 90.0), 0.0, 0.0));
 }
 
 
 // 
 void APlayableAbstractCharacter::TransferCharacterData(FArchive & GivenSaveOrLoadSystem) {
+
+	// 
+	Super::TransferCharacterData(GivenSaveOrLoadSystem);
 	
 	// Locally collect all player transform data including camera rotations
 	FTransform LocalTransform = this->GetTransform();
-	double CameraRotationYaw = this->RotatorComponent->GetRelativeRotation().Yaw;
-	double CameraRotationPitch = this->PlayerCamera->GetRelativeRotation().Pitch;
+	double CameraRotationYaw = this->RotatorComponent->GetComponentRotation().Yaw;
+	double CameraRotationPitch = this->PlayerCamera->GetComponentRotation().Pitch;
 
 	// Load or save information from the given archive
 	GivenSaveOrLoadSystem << LocalTransform;

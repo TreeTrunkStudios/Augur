@@ -10,13 +10,12 @@
 #include "CoreMinimal.h"
 #include "AbstractCharacter.h"
 #include "Camera/CameraComponent.h"
-#include "CharacterData.h"
 #include "PlayableAbstractCharacter.generated.h"
 
 
 //
 UCLASS()
-class ADVANCEDMOVEMENTSYSTEM_API APlayableAbstractCharacter : public AAbstractCharacter, public ICharacterData {
+class ADVANCEDMOVEMENTSYSTEM_API APlayableAbstractCharacter : public AAbstractCharacter {
 	GENERATED_BODY()
 
 
@@ -27,21 +26,49 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UCameraComponent * PlayerCamera = nullptr;
 
-	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UArrowComponent * RotatorComponent = nullptr;
-
 
 // Protected variable section
 protected:
 
 	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputMappingContext * InputMapping = nullptr;
 
 	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputAction * InputActionMovement = nullptr;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputAction * InputActionLooking = nullptr;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputAction * InputActionMouseLooking = nullptr;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UInputAction * InputActionChangeGait = nullptr;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UInputAction * InputActionChangeStance = nullptr;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UInputAction * InputActionChangeSprint = nullptr;
+
+
+// 
+protected:
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector FirstPersonCameraOffset;
+
+	// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector ThirdPersonCameraOffset;
 
 
 // 
