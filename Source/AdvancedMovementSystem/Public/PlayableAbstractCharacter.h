@@ -63,12 +63,20 @@ protected:
 protected:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FVector FirstPersonCameraOffset;
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EViewMode", Units="Centimeters"))
+	FVector CameraOffset[EViewMode::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FVector ThirdPersonCameraOffset;
+	FVector TargetRelativeOffset = CameraOffset[static_cast<uint32>(CurrentViewMode)];
+	FVector PreviousRelativeOffset = TargetRelativeOffset;
+
+	// 
+	UPROPERTY(EditAnywhere)
+	double MinCameraAngle = -90.0;
+	
+	// 
+	UPROPERTY(EditAnywhere)
+	double MaxCameraAngle = 90.0;
 
 
 // 
@@ -103,6 +111,9 @@ protected:
 
 	// 
 	virtual void HandleLookingInput(const FInputActionInstance & Instance);
+
+	// 
+	virtual void ToggleCameraPerspective() override;
 
 
 // 

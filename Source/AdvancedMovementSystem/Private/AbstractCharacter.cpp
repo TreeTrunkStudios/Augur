@@ -8,6 +8,10 @@
 #include "Kismet/KismetMathLibrary.h"
 
 
+// 
+#define SHOULD_HAVE_ACCURATE_PREVIOUS_FLOOR_TRANSFORMS
+
+
 // Sets default values
 AAbstractCharacter::AAbstractCharacter() {
 
@@ -15,8 +19,9 @@ AAbstractCharacter::AAbstractCharacter() {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bTickEvenWhenPaused = false;
+	PrimaryActorTick.bRunOnAnyThread = false;
 	PrimaryActorTick.TickGroup = ETickingGroup::TG_PrePhysics;
-	PrimaryActorTick.EndTickGroup = ETickingGroup::TG_StartPhysics;
+	PrimaryActorTick.EndTickGroup = ETickingGroup::TG_EndPhysics; //TG_StartPhysics
 
 	// 
 	BaseComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BaseComponent"));
@@ -33,7 +38,6 @@ AAbstractCharacter::AAbstractCharacter() {
 	CharacterSkeleton = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterSkeleton"));
 	CharacterSkeleton->SetupAttachment(BaseModelComponent);
 	CharacterSkeleton->SetRelativeTransform(FTransform::Identity);
-	//CharacterSkeleton->SetRelativeRotation(FRotator(0.0, -90.0, 0.0));
 
 	// Create and initialize the player camera component
 	RotatorComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("RotatorComponent"));
@@ -73,7 +77,7 @@ void AAbstractCharacter::BeginPlay() {
 	Super::BeginPlay();
 
 	// 
-	GetWorld()->bDebugDrawAllTraceTags = true;
+	this->RootComponent->SetWorldRotation(FRotator(0.0));
 	
 	// 
 	DrawDebugShapes();
@@ -112,21 +116,26 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 	AimYawRate = FMath::Abs((this->RotatorComponent->GetRelativeRotation().Yaw - PreviousAimYaw) * InverseDeltaTime);
 
 
-	// Update our target half height, as it should interpolate based on the target stance
-	CurrentHalfHeight = FMath::FInterpTo(CurrentHalfHeight, CharacterCollisionModel.HalfHeight[static_cast<uint32>(CurrentStance)], DeltaTime, 5.0f);
-	CurrentRadius = FMath::FInterpTo(CurrentRadius, CharacterCollisionModel.Radius[static_cast<uint32>(CurrentStance)], DeltaTime, 5.0f);
-	CurrentStepHeight = FMath::FInterpTo(CurrentStepHeight, CharacterCollisionModel.MaxStepHeight[static_cast<uint32>(CurrentStance)], DeltaTime, 5.0f);
+	// Ensure that our collision shape is fully updated as the capsule that surrounds the entire player body
+	WallCollisionShape.SetCapsule(FMath::FInterpTo(WallCollisionShape.GetCapsuleRadius(), CharacterCollisionModel.Radius[static_cast<uint8>(CurrentStance)], DeltaTime, 5.0f), FMath::FInterpTo(WallCollisionShape.GetCapsuleHalfHeight(), CharacterCollisionModel.HalfHeight[static_cast<uint8>(CurrentStance)], DeltaTime, 5.0f));
+	FloorCollisionShape.SetCapsule(WallCollisionShape.GetCapsuleRadius(), FMath::FInterpTo(FloorCollisionShape.GetCapsuleHalfHeight(), CharacterCollisionModel.MaxStepHeight[static_cast<uint8>(CurrentStance)], DeltaTime, 5.0f));
 
-	// Calculate and locally store the world position of the center of the collision box for the character
-	CurrentCollisionWorldPosition = (GetActorLocation() + FVector(0.0f, 0.0f, CurrentHalfHeight + CurrentStepHeight));
+
+	// 
+	CurrentCollisionRotation = (GetActorQuat() + FMath::QInterpTo(CurrentCollisionRotation, CharacterCollisionModel.CollisionRotation[static_cast<uint8>(CurrentStance)], DeltaTime, 5.0f));
+
+
+	// Calculate and locally store the current world position of the center of the collision box for the character
+#ifdef ALLOW_ROTATING_GRAVITY
+	CurrentCollisionWorldPosition = (GetActorLocation() + GetActorQuat().RotateVector(FVector(0.0f, 0.0f, WallCollisionShape.GetCapsuleHalfHeight() + FloorCollisionShape.GetCapsuleHalfHeight())));
+#else
+	CurrentCollisionWorldPosition = (GetActorLocation() + FVector(0.0f, 0.0f, WallCollisionShape.GetCapsuleHalfHeight() + FloorCollisionShape.GetCapsuleHalfHeight()));
+#endif
 
 	// Reset all of our collision query parameters now for a clean sweep later
 	CollisionQueryParameters.bTraceComplex = false;
 	CollisionQueryParameters.bReturnPhysicalMaterial = false;
 	CollisionQueryParameters.bDebugQuery = true;
-
-	// Ensure that our collision shape is fully updated as the capsule that surrounds the entire player body
-	CollisionShape.SetCapsule(CurrentRadius, CurrentHalfHeight);
 
 	// Calculate gravity to handle any and all custom gravity logic
 	CalculateGravity();
@@ -135,66 +144,66 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 	switch (CurrentMovementState) {
 
 		// If we are grounded, then we call the override-able grounded calculator function to handle that state
-		case MovementStateEnum::Grounded:
+		case EMovementState::Grounded:
 			CalculateGroundedMovement();
 			break;
 
 		// If we are grounded, then we call the override-able grounded calculator function to handle that state
-		case MovementStateEnum::Airborne:
+		case EMovementState::Airborne:
 			CalculateAirborneMovement();
 			break;
 
 		// 
-		case MovementStateEnum::Mantling:
+		case EMovementState::Mantling:
 
 			// 
 			CalculateMantlingMovement();
 			break;
 
 		// 
-		case MovementStateEnum::Ragdoll:
+		case EMovementState::Ragdoll:
 
 			//
 			CalculateRagdollMovement();
 			break;
 
 		// 
-		case MovementStateEnum::LadderClimbing:
+		case EMovementState::LadderClimbing:
 
 			// 
 			CalculateLadderClimbingMovement();
 			break;
 
 		// 
-		case MovementStateEnum::Rolling:
+		case EMovementState::Rolling:
 
 			// 
 			CalculateRollingMovement();
 			break;
 
 		// 
-		case MovementStateEnum::Sliding:
+		case EMovementState::Sliding:
 
 			// 
 			CalculateSlidingMovement();
 			break;
 
 		// 
-		case MovementStateEnum::Swimming:
+		case EMovementState::Swimming:
 
 			// 
 			CalculateSwimmingMovement();
 			break;
 
 		// 
-		case MovementStateEnum::Floating:
+		case EMovementState::Floating:
 
 			// 
 			CalculateFloatingMovement();
 			break;
 
 		// Do nothing, as this is an error case and should be treated as such
-		case MovementStateEnum::Num:
+		case EMovementState::Num:
 		default:
 			break;
 	}
@@ -206,12 +215,6 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 #ifdef UE_BUILD_DEBUG
 	// And, next, Draw Debug Shapes
 	DrawDebugShapes();
-
-	// 
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("PreviousFloorComponent: ")) + (PreviousFloorComponent.IsValid() ? PreviousFloorComponent->GetName() : FString(TEXT("nullptr"))));
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("PreviousFloorPreviousTransform: ")) + PreviousFloorPreviousTransform.ToString());
-	}
 #endif
 
 	// Lastly, apply the wanted world transform as an offset and move along
@@ -223,9 +226,9 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 #ifdef UE_BUILD_DEBUG
 void AAbstractCharacter::OnConstruction(const FTransform & Transform) {
 	Super::OnConstruction(Transform);
-	DebugCapsuleCollision->SetRelativeLocation(Transform.GetLocation() + FVector(0.0, 0.0, CharacterCollisionModel.HalfHeight[static_cast<uint32>(CurrentStance)] + CharacterCollisionModel.MaxStepHeight[static_cast<uint32>(CurrentStance)]));
-	DebugCapsuleCollision->SetCapsuleHalfHeight(CharacterCollisionModel.HalfHeight[static_cast<uint32>(CurrentStance)]);
-	DebugCapsuleCollision->SetCapsuleRadius(CharacterCollisionModel.Radius[static_cast<uint32>(CurrentStance)]);
+	DebugCapsuleCollision->SetRelativeLocation(Transform.GetLocation() + FVector(0.0, 0.0, CharacterCollisionModel.HalfHeight[static_cast<uint8>(CurrentStance)] + CharacterCollisionModel.MaxStepHeight[static_cast<uint8>(CurrentStance)]));
+	DebugCapsuleCollision->SetCapsuleHalfHeight(CharacterCollisionModel.HalfHeight[static_cast<uint8>(CurrentStance)]);
+	DebugCapsuleCollision->SetCapsuleRadius(CharacterCollisionModel.Radius[static_cast<uint8>(CurrentStance)]);
 }
 #endif
 
@@ -243,37 +246,37 @@ void AAbstractCharacter::SmoothCharacterRotation(FRotator NewTargetRotation, con
 
 // 
 void AAbstractCharacter::ToggleStance() {
-	CurrentStance = ((CurrentStance == StanceEnum::Standing) ? StanceEnum::Crouching : StanceEnum::Standing);
+	CurrentStance = ((CurrentStance == EStance::Standing) ? EStance::Crouching : EStance::Standing);
 }
 
 
 // 
 void AAbstractCharacter::ToggleGait() {
-	DesiredGait = ((DesiredGait == GaitStateEnum::FastWalking) ? GaitStateEnum::Walking : GaitStateEnum::FastWalking);
+	DesiredGait = ((DesiredGait == EGaitState::FastWalking) ? EGaitState::Walking : EGaitState::FastWalking);
 }
 
 
 // 
 void AAbstractCharacter::ToggleSprint() {
-	if (DesiredGait != GaitStateEnum::Running) PreviousGait = DesiredGait;
-	DesiredGait = ((DesiredGait != GaitStateEnum::Running) ? GaitStateEnum::Running : PreviousGait);
+	if (DesiredGait != EGaitState::Running) PreviousGait = DesiredGait;
+	DesiredGait = ((DesiredGait != EGaitState::Running) ? EGaitState::Running : PreviousGait);
 }
 
 
 // 
 void AAbstractCharacter::ToggleCameraPerspective() {
-	IsThirdPerson = !IsThirdPerson;
+	CurrentViewMode = (CurrentViewMode == EViewMode::FirstPerson ? EViewMode::ThirdPerson : EViewMode::FirstPerson);
 }
 
 
 // 
-void AAbstractCharacter::SetStance(const StanceEnum GivenStance) {
+void AAbstractCharacter::SetStance(const EStance GivenStance) {
 	CurrentStance = GivenStance;
 }
 
 
 // 
-void AAbstractCharacter::SetGait(const GaitStateEnum GivenGait) {
+void AAbstractCharacter::SetGait(const EGaitState GivenGait) {
 	PreviousGait = DesiredGait;
 	DesiredGait = GivenGait;
 }
@@ -281,14 +284,28 @@ void AAbstractCharacter::SetGait(const GaitStateEnum GivenGait) {
 
 // 
 void AAbstractCharacter::SetSprint(const bool IsWantingToSprint) {
-	if (DesiredGait != GaitStateEnum::Running) PreviousGait = DesiredGait;
-	DesiredGait = (IsWantingToSprint ? GaitStateEnum::Running : PreviousGait);
+	if (DesiredGait != EGaitState::Running) PreviousGait = DesiredGait;
+	DesiredGait = (IsWantingToSprint ? EGaitState::Running : PreviousGait);
 }
 
 
 // 
-void AAbstractCharacter::SetCameraPerspective(const bool NewIsThirdPerson) {
-	IsThirdPerson = NewIsThirdPerson;
+void AAbstractCharacter::SetCameraPerspective(const EViewMode NewViewMode) {
+	CurrentViewMode = NewViewMode;
+}
+
+
+// 
+double AAbstractCharacter::GetSpeedMultipleByAngle() {
+	return (1.0 + ((1.0 - CollisionResult.ImpactNormal.Z) * (MAX_SPEED_ANGLE_MULTIPLIER / (1.0 - LARGEST_SLOPE_ANGLE)) * (FMath::IsNegativeOrNegativeZero(TargetVelocity.Z) ? 1.0 : -1.0)));
+}
+
+
+// 
+double AAbstractCharacter::GetSpeedMultipleByFloorType() {
+
+	// If the physical material is valid, then convert its SurfaceType into an integer to index the FloorTypeSpeedMultiplier array, else use the default value of 0
+	return FloorTypeSpeedMultiplier[static_cast<uint8>(CollisionResult.PhysMaterial.IsValid() ? CollisionResult.PhysMaterial->SurfaceType : 0)];
 }
 
 
@@ -296,27 +313,26 @@ void AAbstractCharacter::SetCameraPerspective(const bool NewIsThirdPerson) {
 void AAbstractCharacter::GetMovementAnimationData_Implementation(FMovementAnimationDataStruct & GivenMovementAnimationData) const {
 	GivenMovementAnimationData.Velocity = CurrentVelocity;
 	GivenMovementAnimationData.Acceleration = Acceleration;
-	GivenMovementAnimationData.MovementInput = LastControlInputVector;
+	GivenMovementAnimationData.MovementInput = MovementInput;
 	GivenMovementAnimationData.IsMoving = IsMoving;
 	GivenMovementAnimationData.HasMovementInput = HasMovementInput;
 	GivenMovementAnimationData.Speed = Speed;
 	GivenMovementAnimationData.MovementInputAmount = MovementInputAmount;
 	GivenMovementAnimationData.AimYawRate = AimYawRate;
-	GivenMovementAnimationData.CapsuleRadius = CurrentRadius;
-	GivenMovementAnimationData.CapsuleHalfHeight = CurrentHalfHeight;
+	GivenMovementAnimationData.CapsuleRadius = WallCollisionShape.GetCapsuleRadius();
+	GivenMovementAnimationData.CapsuleHalfHeight = WallCollisionShape.GetCapsuleHalfHeight();
 	GivenMovementAnimationData.MaxAcceleration = MaxAcceleration;
 	GivenMovementAnimationData.AimingRotation = RotatorComponent->GetRelativeRotation();
 	GivenMovementAnimationData.ActorPreviousRotation = PreviousActorRotation;
-	GivenMovementAnimationData.ActorControlRotation = this->CharacterSkeleton->GetRelativeRotation();
-	GivenMovementAnimationData.ActorWorldLocation = this->GetActorLocation();
+	GivenMovementAnimationData.ActorControlRotation = CharacterSkeleton->GetRelativeRotation();
+	GivenMovementAnimationData.ActorWorldLocation = GetActorLocation();
 	GivenMovementAnimationData.MovementState = CurrentMovementState;
 	GivenMovementAnimationData.PreviousMovementState = PreviousMovementState;
 	GivenMovementAnimationData.RotationMode = RotationState;
 	GivenMovementAnimationData.Gait = CurrentGait;
-	GivenMovementAnimationData.MovementAction = 0;
 	GivenMovementAnimationData.Stance = CurrentStance;
-	GivenMovementAnimationData.ViewMode = ViewModeEnum::FirstPerson;
-	GivenMovementAnimationData.OverlayState = 0;
+	GivenMovementAnimationData.ViewMode = CurrentViewMode;
+	GivenMovementAnimationData.InAirPredictionTime = InAirPredictionTime;
 }
 
 
@@ -326,11 +342,27 @@ void AAbstractCharacter::TransferCharacterData(FArchive & GivenSaveOrLoadSystem)
 
 // 
 void AAbstractCharacter::ToGrounded() {
+
+	// Update the current movement state to the new grounded state
+	CurrentMovementState = EMovementState::Grounded;
+
+	// Update our previous floor to now be the floor which we just landed on now that we're grounded
+	PreviousFloorComponent = CollisionResult.Component;
+	PreviousFloorPreviousTransform = PreviousFloorComponent->GetComponentTransform();
 }
 
 
 // 
 void AAbstractCharacter::ToAirborne() {
+
+	// Update the current movement state to the new airborne state
+	CurrentMovementState = EMovementState::Airborne;
+
+	// Set our previous floor component to be nullptr, as there will no longer be floors changing our anything, as we are falling now
+	PreviousFloorComponent = nullptr;
+
+	// Ensure that our in-air rotation is the same as our current rotation
+	InAirRotation = CharacterSkeleton->GetRelativeRotation();
 }
 
 
@@ -350,26 +382,23 @@ void AAbstractCharacter::CalculatePreviousFloor() {
 	// Locally store the previous floor component's transform
 	const FTransform & CurrentPreviousFloorTransform = PreviousFloorComponent->GetComponentTransform();
 
-	// Keep a counter to see if an actual change in transform has occured or not
-	//     TODO: Could potentially change this to be !CalculatedMovementOffset.IsZero(); or !CalculatedMovementOffset.IsNearlyZero();
-	uint8 ChangeCounter = 0;
-
 	// If the previous floor's previous location does not equal its current location, then...
 	if (FTransform::AreTranslationsEqual(PreviousFloorPreviousTransform, CurrentPreviousFloorTransform) == false) {
+
+#ifdef SHOULD_HAVE_ACCURATE_PREVIOUS_FLOOR_TRANSFORMS
 
 		// Simply subtract the previous floor's previous location from its current location to get the difference in movement 
 		FVector DeltaLocation = (FTransform::SubtractTranslations(CurrentPreviousFloorTransform, PreviousFloorPreviousTransform));
 
 		// Collision check to ensure that there is nothing between your old position and the new position
 		//     (e.g. standing still on a moving block that moves you into a non-moving wall)
-		FPhysicsInterface::GeomSweepSingle(GetWorld(), CollisionShape, FQuat::Identity, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + DeltaLocation, ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam);
-		//GetWorld()->SweepSingleByChannel(CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + DeltaLocation, FQuat::Identity, ECollisionChannel::ECC_Visibility, CollisionShape, CollisionQueryParameters);
+		FPhysicsInterface::GeomSweepSingle(GetWorld(), WallCollisionShape, CurrentCollisionRotation, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + DeltaLocation, ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam);
 
 		// Finally, implement what's left of the delta location now
-		CalculatedMovementOffset += (DeltaLocation * (CollisionResult.bBlockingHit ? CollisionResult.Time : 1.0f));
-
-		// Increment the change counter since there was an actual positional change that now needs collision checking
-		++ChangeCounter;
+		CalculatedMovementOffset += (DeltaLocation * (CollisionResult.bBlockingHit ? CollisionResult.Time : 1.0));
+#else
+		CalculatedMovementOffset += (FTransform::SubtractTranslations(CurrentPreviousFloorTransform, PreviousFloorPreviousTransform));
+#endif
 	}
 
 	// If the previous floor's previous rotation does not equal its current rotation, then...
@@ -380,9 +409,6 @@ void AAbstractCharacter::CalculatePreviousFloor() {
 
 		// TODO: Convert rotational differences into positional differences
 		// 
-
-		// Increment the change counter since there was an actual positional change that now needs collision checking
-		++ChangeCounter;
 	}
 
 	// If the previous floor's previous scale does not equal its current scale, then...
@@ -393,16 +419,15 @@ void AAbstractCharacter::CalculatePreviousFloor() {
 
 		// TODO: Convert scale differences into positional differences
 		// 
-
-		// Increment the change counter since there was an actual positional change that now needs collision checking
-		++ChangeCounter;
 	}
 
-	// Finally, save the new transform to be the next frame's previous transform
-	PreviousFloorPreviousTransform = CurrentPreviousFloorTransform;
+#ifndef SHOULD_HAVE_ACCURATE_PREVIOUS_FLOOR_TRANSFORMS
+	FPhysicsInterface::GeomSweepSingle(GetWorld(), WallCollisionShape, CurrentCollisionRotation, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + CalculatedMovementOffset, ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam));
+	CalculatedMovementOffset *= CollisionResult.Time;
+#endif
 
-	// If there has been a change in transform, then we need to check for walls now, else movement will be inaccurate
-	if (ChangeCounter > 0) CalculateCollisionOffset();
+	// Update our current collision world position by all other aspects taken into account above in order to have accurate results
+	CurrentCollisionWorldPosition += CalculatedMovementOffset;
 }
 
 
@@ -412,116 +437,140 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	// Check if our previous floor (if valid) has transformed in any way and store the following movement within the CalculatedMovementOffset as an additive vector
 	CalculatePreviousFloor();
 
-	// TODO: Should we take into account our previous velocity??
-	// Locally store our current collision world position plus any previous movement offsets that should be taken into account
-	FVector LocalActorPosition = (CurrentCollisionWorldPosition + CalculatedMovementOffset);
+	// TODO: Potentially take into account previous velocity and/or gravity
+	// Locally store our current actor's world position plus any previous movement offsets that should be taken into account such as previous floor movement
+	FVector CurrentWorldPosition = (GetActorLocation() + CalculatedMovementOffset);
 
-	// If our collision trace does NOT hit something OR the floor is too steep to walk on, then we are to assume we are now airborne, so...
-	// TODO: Update to FPhysicsInterface::GeomSweepSingle
-	if (!GetWorld()->SweepSingleByChannel(CollisionResult, LocalActorPosition, LocalActorPosition + CurrentGravityOffset, CharacterCollisionModel.CollisionRotation[static_cast<uint32>(CurrentStance)], ECollisionChannel::ECC_Visibility, CollisionShape, CollisionQueryParameters) || (CollisionResult.ImpactNormal.Z > LARGEST_SLOPE_ANGLE)) {
+
+	//// Velocity and acceleration calculations
+	// Else, we are grounded, so we need to calculate our next movement now, so...
+	// Calculate our target velocity by multiplying our movement input by our current gait's max movement speed
+	TargetVelocity = (MovementInput * CurrentMovementData.MaxSpeed[static_cast<uint8>(AllowedGait)]);
+
+	// Calculate our current acceleration by taking the difference in velocities divided by delta time
+	Acceleration = FVector(FVector2D(TargetVelocity - PreviousVelocity) * InverseDeltaTime, 0.0);
+
+	// Calculate our max acceleration by utilizing our current gait's either acceleration or deceleration depending on whether we are slowing down or not
+	MaxAcceleration = FMath::FInterpTo(MaxAcceleration, ((TargetVelocity.SizeSquared() >= PreviousVelocity.SizeSquared()) ? CurrentMovementData.MaxAcceleration[(int32)CurrentGait] : CurrentMovementData.MaxDeceleration[(int32)CurrentGait]), CurrentDeltaTime, 10.0f);
+
+	// If our current acceleration is greater than our max acceleration, then...
+	float CurrentAccelerationSizeSquared = Acceleration.SizeSquared();
+	if (CurrentAccelerationSizeSquared > FMath::Square(MaxAcceleration)) {
+
+		// Clamp our current acceleration by our max acceleration to ensure that we are not speeding up or rotating too quickly
+		Acceleration *= (MaxAcceleration * FMath::InvSqrt(CurrentAccelerationSizeSquared));
+
+		// Next, we store our target velocity as our new current acceleration multiplied by delta time
+		TargetVelocity = FVector(FVector2D((Acceleration * CurrentDeltaTime) + PreviousVelocity), TargetVelocity.Z);
+	}
+
+
+	// Now we do the WallCheck to ensure that we are not walking through objects
+	CalculateCollisionOffset();
+	
+
+	//// Now we do the FloorCheck to ensure that we are not walking over large openings (rather than changing the collision shape twice, we just make a new temporary shape instead, since it is a one-off)
+	// First we do a floor check shape sweep with a capsule of our current radius and a half height of our current step height to ensure that there is floor that we can walk on
+	// If our floor collision trace does NOT hit something, then we are to assume we are now airborne, so...
+	if (!FPhysicsInterface::GeomSweepSingle(GetWorld(), FloorCollisionShape, CurrentCollisionRotation, CollisionResult, CurrentWorldPosition + (TargetVelocity * CurrentDeltaTime), CurrentWorldPosition, ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
 
 		//// AIRBORNE
-		// Update the current movement state to the new airborne state
-		CurrentMovementState = MovementStateEnum::Airborne;
+		// Update our movement offset to be where the collision sweep ended plus gravity and move on
+		CalculatedMovementOffset += (CurrentGravityOffset + (CollisionResult.TraceStart - CollisionResult.TraceEnd));
 
-		// Update our movement offset to be where the collision sweep ended plus our previous velocity and move on
-		CalculatedMovementOffset += (CurrentGravityOffset + (PreviousVelocity * CurrentDeltaTime));
-
-		//// No need to calculate airborne as we already took into account movement in the previous calculations
-		// Call the function to calculate the new airborne movement functionality to ensure that we are not left one frame behind due to the swap
-		//CalculateAirborneMovement();
+		// Call the function which handles the main transitioning to the new airborne state
+		ToAirborne();
 
 		// Finally, do an early return, as we do not need to calculate the rest of the grounded functionality
 		return;
 	}
 
-	// Else, we are grounded, so we need to calculate our next movement now, so...
-	// TODO: Calculate our grounded movement functionality now (apply user input to velocity, limit velocity by acceleration/deceleration, account for angular ground, account for missing ground, and account for any and all collisions
-	//
-
-
-	//// Take into account that we need to move closer to the final floor location
-	//CalculatedMovementOffset += ((CollisionResult.TraceEnd - CollisionResult.TraceStart) * CollisionResult.Time);
-
-
-	//// Velocity and acceleration calculations
-	// 
-	TargetVelocity = (MovementInput * ((AllowedGait == GaitStateEnum::Running ? CurrentMovementData.MaxRunningSpeed : (AllowedGait == GaitStateEnum::FastWalking ? CurrentMovementData.MaxFastWalkSpeed : CurrentMovementData.MaxWalkSpeed))));
 
 	// 
-	Acceleration = ((TargetVelocity - CurrentVelocity) * InverseDeltaTime);
+	PreviousFloorComponent = CollisionResult.Component;
 
-	// 
-	MaxAcceleration = FMath::FInterpTo(MaxAcceleration, ((TargetVelocity.SizeSquared() >= CurrentVelocity.SizeSquared()) ? CurrentMovementData.MaxAcceleration[(int32)CurrentGait] : CurrentMovementData.MaxDeceleration[(int32)CurrentGait]), CurrentDeltaTime, 5.0f);
 
-	// Same as Acceleration.GetClampedToMaxSize(MaxAcceleration); but way more optimized
-	float CurrentAccelerationSizeSquared = Acceleration.SizeSquared();
-	if (CurrentAccelerationSizeSquared > FMath::Square(MaxAcceleration)) {
-		const float Scale = MaxAcceleration * FMath::InvSqrt(CurrentAccelerationSizeSquared);
-		Acceleration.X *= Scale;
-		Acceleration.Y *= Scale;
-		Acceleration.Z *= Scale;
-	}
-	
-	// 
-	CurrentVelocity += (Acceleration * CurrentDeltaTime);
+	// Now, for the final trace, we need to do a line trace on the impact point to get accurate results, as well as the physical material (if one exists)
+	CollisionQueryParameters.bReturnPhysicalMaterial = true;
+	// TODO: Fix raycasting so that it relies on the actor's rotation to be able to handle changing gravitational rotations
+	//FVector StepHeightOffset = GetActorQuat().RotateVector(FVector(0.0, 0.0, FloorCollisionShape.GetCapsuleHalfHeight()));
+	if (CollisionResult.bStartPenetrating == false) FPhysicsInterface::RaycastSingle(GetWorld(), CollisionResult, FVector(CollisionResult.ImpactPoint.X, CollisionResult.ImpactPoint.Y, CollisionResult.Location.Z + FloorCollisionShape.GetCapsuleHalfHeight()), FVector(CollisionResult.ImpactPoint.X, CollisionResult.ImpactPoint.Y, CollisionResult.Location.Z - FloorCollisionShape.GetCapsuleHalfHeight()), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam);
+	else FPhysicsInterface::RaycastSingle(GetWorld(), CollisionResult, FVector(CollisionResult.Location.X, CollisionResult.Location.Y, CollisionResult.Location.Z + FloorCollisionShape.GetCapsuleHalfHeight()), FVector(CollisionResult.Location.X, CollisionResult.Location.Y, CollisionResult.Location.Z - FloorCollisionShape.GetCapsuleHalfHeight()), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam);
+	CollisionQueryParameters.bReturnPhysicalMaterial = false;
 
 
 	// 
-	CalculatedMovementOffset += (CurrentVelocity * CurrentDeltaTime);
+	if (CollisionResult.bBlockingHit) {
+
+		// Next, we need to ensure that the floor we hit above is actually walkable, else we also want to go to the airborne state
+		if (CollisionResult.ImpactNormal.Z < LARGEST_SLOPE_ANGLE) {
+
+			//// AIRBORNE
+			// Update our movement offset to be where the collision sweep ended plus gravity and move on
+			CalculatedMovementOffset += (CurrentGravityOffset + (TargetVelocity * CurrentDeltaTime));
+
+			// Call the function which handles the main transitioning to the new airborne state
+			ToAirborne();
+
+			// Finally, do an early return, as we do not need to calculate the rest of the grounded functionality
+			return;
+		}
+
+		// Next, we take all of our new collision information and adjust our target velocity for the z axis only depending on whether the floor is a walkable slope or not
+		TargetVelocity.Z = FMath::FInterpTo(TargetVelocity.Z, ((CollisionResult.ImpactPoint.Z - CurrentWorldPosition.Z) * InverseDeltaTime), CurrentDeltaTime, 5.0f);
 
 
-	// 
-	CalculateCollisionOffset();
+		// 
+		CurrentVelocity = (TargetVelocity * (GetSpeedMultipleByAngle() * GetSpeedMultipleByFloorType()));
 
-	// 
-	LocalActorPosition = (CurrentCollisionWorldPosition + CalculatedMovementOffset);
-	FVector MaxStepVector = FVector(0.0f, 0.0f, CharacterCollisionModel.MaxStepHeight[static_cast<uint32>(CurrentStance)]);
 
-	// Collect the current floor and store it as the previous floor
-	// TODO: Update to FPhysicsInterface::GeomSweepSingle
-	GetWorld()->SweepSingleByChannel(CollisionResult, LocalActorPosition + MaxStepVector, LocalActorPosition - MaxStepVector, CharacterCollisionModel.CollisionRotation[static_cast<uint32>(CurrentStance)], ECollisionChannel::ECC_Visibility, CollisionShape, CollisionQueryParameters);
-	
-	// If this is a new floor component, then update all of the information
-	if (PreviousFloorComponent.Get() != CollisionResult.GetComponent()) {
+		// 
 		PreviousFloorComponent = CollisionResult.Component;
-		if (PreviousFloorComponent.IsValid())
-			PreviousFloorPreviousTransform = PreviousFloorComponent->GetComponentTransform();
 	}
-
-	// Ensure that our position offset takes into account how far we are from the floor
-	CalculatedMovementOffset += FVector(0.0f, 0.0f, (CollisionResult.Location.Z - LocalActorPosition.Z));
 
 
 	// 
+	else {
+		CollisionResult.ImpactNormal.Z = 1.0;
+		CollisionResult.PhysMaterial = nullptr;
+		CurrentVelocity = (TargetVelocity * (GetSpeedMultipleByAngle() * GetSpeedMultipleByFloorType()));
+	}
+
+
+	// If this is a new floor component, then update all of the previous floor information to handle such
+	PreviousFloorPreviousTransform = PreviousFloorComponent->GetComponentTransform();
+
+
+	// Next, locally store the magnitude of the current velocity's vector to save performance costs in the future
 	Speed = CurrentVelocity.Size();
 
 
+	// Lastly, apply the current velocity multiplied by delta time as our final movement offset for the user's input
+	CalculatedMovementOffset += (CurrentVelocity * CurrentDeltaTime);
+
 
 	// Calculate whether we are moving
-	IsMoving = (CalculatedMovementOffset.SizeSquared() > 0.0f);
+	IsMoving = (Speed > 5.0f);
 
 	// Calculate the last velocity rotation iff we are moving
-	if (IsMoving) LastVelocityRotation = CalculatedMovementOffset.ToOrientationRotator();
-
-
+	if (IsMoving) LastVelocityRotation = CurrentVelocity.ToOrientationRotator();
 
 
 	// Update Character Movement
 		// Set the allowed gait
-	if (CurrentStance == StanceEnum::Crouching) {
-		AllowedGait = (DesiredGait == GaitStateEnum::Walking ? GaitStateEnum::Walking : GaitStateEnum::FastWalking);
+	if (CurrentStance == EStance::Crouching) {
+		AllowedGait = (DesiredGait == EGaitState::Walking ? EGaitState::Walking : EGaitState::FastWalking);
 	}
 	else {
-		if (DesiredGait == GaitStateEnum::Running) {
-
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString((FMath::Abs((Acceleration.ToOrientationRotator() - RotatorComponent->GetRelativeRotation()).GetNormalized().Yaw) < 50.0f) ? TEXT("Can Sprint") : TEXT("Cannot Sprint")));
+		if (DesiredGait == EGaitState::Running) {
 
 			// Can Sprint
-			AllowedGait = ((HasMovementInput && (RotationState == RotationStateEnum::VelocityDirection ||
-				((RotationState == RotationStateEnum::LookingDirection && (FMath::Abs((Acceleration.ToOrientationRotator() -
-					RotatorComponent->GetRelativeRotation()).GetNormalized().Yaw) < 50.0f)))) && (MovementInputAmount > 0.9f)) ?
-				GaitStateEnum::Running : GaitStateEnum::FastWalking);
+			bool CanSprint = (HasMovementInput && (RotationState == ERotationState::VelocityDirection ||
+				((RotationState == ERotationState::LookingDirection && (FMath::Abs((Acceleration.ToOrientationRotator() -
+					RotatorComponent->GetRelativeRotation()).GetNormalized().Yaw) < 50.0f)))) && (MovementInputAmount > 0.9f));
+			AllowedGait = (CanSprint ?
+				EGaitState::Running : EGaitState::FastWalking);
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Cyan, FString(TEXT("CanSprint: ")) + FString(CanSprint ? TEXT("true") : TEXT("false")));
 		}
 		else {
 			AllowedGait = DesiredGait;
@@ -529,27 +578,18 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	}
 
 	// Determine the actual gait
-	//if (Speed >= (((CurrentMovementData.MaxRunningSpeed - CurrentMovementData.MaxFastWalkSpeed) * 0.5f) + CurrentMovementData.MaxFastWalkSpeed)) ActualGait = GaitStateEnum::Running;
-	//else if (Speed >= (((CurrentMovementData.MaxFastWalkSpeed - CurrentMovementData.MaxWalkSpeed) * 0.5f) + CurrentMovementData.MaxWalkSpeed)) ActualGait = GaitStateEnum::FastWalking;
+	//if (Speed >= (((CurrentMovementData.MaxRunningSpeed - CurrentMovementData.MaxFastWalkSpeed) * 0.5f) + CurrentMovementData.MaxFastWalkSpeed)) ActualGait = EGaitState::Running;
+	//else if (Speed >= (((CurrentMovementData.MaxFastWalkSpeed - CurrentMovementData.MaxWalkSpeed) * 0.5f) + CurrentMovementData.MaxWalkSpeed)) ActualGait = EGaitState::FastWalking;
 	//else ActualGait = AllowedGait;
-	if (Speed >= (CurrentMovementData.MaxFastWalkSpeed + 10.0f)) ActualGait = GaitStateEnum::Running;
-	else if (Speed >= (CurrentMovementData.MaxWalkSpeed + 10.0f)) ActualGait = GaitStateEnum::FastWalking;
+	if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Running)] + 10.0f)) ActualGait = EGaitState::Running;
+	else if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)] + 10.0f)) ActualGait = EGaitState::FastWalking;
 	else ActualGait = AllowedGait;
-
-	// 
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("AllowedGait: ") + FString::FromInt(static_cast<int32>(AllowedGait))));
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("ActualGait: ") + FString::FromInt(static_cast<int32>(ActualGait))));
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("CurrentGait: ") + FString::FromInt(static_cast<int32>(CurrentGait))));
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("DesiredGait: ") + FString::FromInt(static_cast<int32>(DesiredGait))));
-		GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Orange, FString(TEXT("PreviousGait: ") + FString::FromInt(static_cast<int32>(PreviousGait))));
-	}
 
 	/*
 	if (Speed >= (CurrentMovementData.MaxFastWalkSpeed + 10.0f)) {
-		ActualGait = (AllowedGait == GaitStateEnum::Running ? GaitStateEnum::Running : GaitStateEnum::FastWalking);
+		ActualGait = (AllowedGait == EGaitState::Running ? EGaitState::Running : EGaitState::FastWalking);
 	} else {
-		ActualGait = ((Speed >= (CurrentMovementData.MaxWalkSpeed + 10.0f)) ? GaitStateEnum::FastWalking : GaitStateEnum::Walking);
+		ActualGait = ((Speed >= (CurrentMovementData.MaxWalkSpeed + 10.0f)) ? EGaitState::FastWalking : EGaitState::Walking);
 	}
 	*/
 
@@ -563,19 +603,19 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	switch (RotationState) {
 
 		// 
-	case RotationStateEnum::VelocityDirection:
-		CurrentMovementData = ((CurrentStance == StanceEnum::Crouching) ? CrouchingVelocityDirectionMovementData : StandingVelocityDirectionMovementData);
+	case ERotationState::VelocityDirection:
+		CurrentMovementData = ((CurrentStance == EStance::Crouching) ? CrouchingVelocityDirectionMovementData : StandingVelocityDirectionMovementData);
 		break;
 
 		// 
 	default:
-	case RotationStateEnum::LookingDirection:
-		CurrentMovementData = ((CurrentStance == StanceEnum::Crouching) ? CrouchingLookingDirectionMovementData : StandingLookingDirectionMovementData);
+	case ERotationState::LookingDirection:
+		CurrentMovementData = ((CurrentStance == EStance::Crouching) ? CrouchingLookingDirectionMovementData : StandingLookingDirectionMovementData);
 		break;
 
 		// 
-	case RotationStateEnum::Aiming:
-		CurrentMovementData = ((CurrentStance == StanceEnum::Crouching) ? CrouchingAimingMovementData : StandingAimingMovementData);
+	case ERotationState::Aiming:
+		CurrentMovementData = ((CurrentStance == EStance::Crouching) ? CrouchingAimingMovementData : StandingAimingMovementData);
 		break;
 	}
 
@@ -587,16 +627,16 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 		switch (RotationState) {
 
 			// 
-		case RotationStateEnum::VelocityDirection:
+		case ERotationState::VelocityDirection:
 			SmoothCharacterRotation(FRotator(0.0, LastVelocityRotation.Yaw, 0.0), 800.0, (CurrentMovementData.RotationInterpSpeed[(unsigned long long)CurrentGait] * FMath::GetMappedRangeValueClamped(FVector2D(0.0, 300.0), FVector2D(1.0, 3.0), AimYawRate)), CurrentDeltaTime);
 			break;
 
 			// 
 		default:
-		case RotationStateEnum::LookingDirection:
+		case ERotationState::LookingDirection:
 
 			// 
-			if (CurrentGait == GaitStateEnum::Running) {
+			if (CurrentGait == EGaitState::Running) {
 				SmoothCharacterRotation(FRotator(0.0, LastVelocityRotation.Yaw, 0.0), 500.0, (CurrentMovementData.RotationInterpSpeed[(unsigned long long)CurrentGait] * FMath::GetMappedRangeValueClamped(FVector2D(0.0, 300.0), FVector2D(1.0, 3.0), AimYawRate)), CurrentDeltaTime);
 			}
 
@@ -609,7 +649,7 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 			break;
 
 			// 
-		case RotationStateEnum::Aiming:
+		case ERotationState::Aiming:
 			SmoothCharacterRotation(FRotator(0.0, RotatorComponent->GetRelativeRotation().Yaw, 0.0), 1000.0, 20.0, CurrentDeltaTime);
 			break;
 		}
@@ -619,11 +659,10 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	else {
 
 		// If we are in first person or third person while aiming, then...
-		if (!IsThirdPerson || (IsThirdPerson && RotationState == RotationStateEnum::Aiming)) {
+		if ((CurrentViewMode == EViewMode::FirstPerson) || (RotationState == ERotationState::Aiming)) {
 
 			// Limit Rotation
 			double YawDelta = (RotatorComponent->GetRelativeRotation() - CharacterSkeleton->GetRelativeRotation()).GetNormalized().Yaw;
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Red, FString(TEXT("YawDelta == ")) + FString::SanitizeFloat(YawDelta));
 			if ((YawDelta < -100.0f) || (YawDelta > 100.0f)) {
 				SmoothCharacterRotation(FRotator(0.0, RotatorComponent->GetRelativeRotation().Yaw - ((YawDelta > 0.0f) ? 100.0f : -100.0f), 0.0f), 0.0f, 20.0f, CurrentDeltaTime);
 			}
@@ -631,7 +670,6 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 
 		// Apply the RotationAmount curve from Turn In Place animations (fixed at an animated framerate of 30 fps)
 		float AnimCurveValue = (IsValid(CharacterSkeleton->GetAnimInstance()) ? CharacterSkeleton->GetAnimInstance()->GetCurveValue(FName(TEXT("RotationAmount"))) : 0.0f);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Red, FString(TEXT("AnimCurveValue == ")) + FString::SanitizeFloat(AnimCurveValue));
 		if (FMath::Abs(AnimCurveValue) > 0.001f) {
 			CharacterSkeleton->AddRelativeRotation(FRotator(0.0f, (AnimCurveValue * CurrentDeltaTime * 30.0f), 0.0f));
 			TargetRotation = CharacterSkeleton->GetRelativeRotation();
@@ -643,22 +681,21 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 // 
 void AAbstractCharacter::CalculateAirborneMovement() {
 
+	// Add more gravity to the current velocity
+	CurrentVelocity += (CurrentGravityOffset * InverseDeltaTime);
+
 	// Locally store our current position plus our current velocity (since we are falling in a set direction)
-	FVector LocalActorPosition = (this->GetActorLocation() + (CurrentVelocity * CurrentDeltaTime) + FVector(0.0f, 0.0f, CurrentHalfHeight));
+	FVector LocalActorPosition = (this->GetActorLocation());// +CalculatedMovementOffset);
 
 	// If our collision trace hits something, then we are to assume we are now grounded, so...
-	// TODO: Update to FPhysicsInterface::GeomSweepSingle
-	if (GetWorld()->SweepSingleByChannel(CollisionResult, LocalActorPosition, LocalActorPosition + CurrentGravityOffset, CharacterCollisionModel.CollisionRotation[static_cast<uint32>(CurrentStance)], ECollisionChannel::ECC_Visibility, CollisionShape, CollisionQueryParameters)) {
+	if (FPhysicsInterface::GeomSweepSingle(GetWorld(), FloorCollisionShape, CurrentCollisionRotation, CollisionResult, LocalActorPosition, LocalActorPosition + (CurrentVelocity * CurrentDeltaTime), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
 
 		//// GROUNDED
-		// Update the current movement state to the new grounded state
-		CurrentMovementState = MovementStateEnum::Grounded;
+		// Ensure that we land on the collision impact point, while also maintaining our current velocity
+		CalculatedMovementOffset += (FVector(CollisionResult.Location.X, CollisionResult.Location.Y, CollisionResult.Location.Z) - CollisionResult.TraceStart);
 
-		// 
-		CalculatedMovementOffset += ((CollisionResult.TraceEnd - CollisionResult.TraceStart) * CollisionResult.Time);
-
-		// Call the function to calculate the new grounded movement functionality to ensure that we are not left one frame behind due to the swap
-		//CalculateGroundedMovement();
+		// Call the function which handles the main transitioning to the new grounded state
+		ToGrounded();
 
 		// Finally, do an early return, as we do not need to calculate the rest of the airborne functionality
 		return;
@@ -668,50 +705,59 @@ void AAbstractCharacter::CalculateAirborneMovement() {
 	// TODO: Calculate airborne movement now (apply gravity to velocity, apply user input to velocity IFF allowed, and account for any and all collisions)
 	// 
 
-	// 
-	CurrentVelocity += (CurrentGravityOffset * InverseDeltaTime);
 
-	// 
-	CalculatedMovementOffset += (CollisionResult.TraceEnd - this->GetActorLocation());
+	// If we are still falling, then updating our target movement offset (cheaply, as three subtractions are faster than three multiplications)
+	CalculatedMovementOffset += (CollisionResult.TraceEnd - CollisionResult.TraceStart);
+	
 
-	// 
+	//// TODO: Potentially fix this silliness by making CalculateCollisionOffset take a reference to the FVector that we actually want to change
+	// Update our target velocity to be our current velocity, as target velocity is what our wall collision system tests against
+	TargetVelocity = CurrentVelocity;
+
+	// Now, check for wall collisions and update our target velocity accordingly
 	CalculateCollisionOffset();
 
-	// Ensure that there is no previous floor, as we are now in the air and do not need such a thing
-	PreviousFloorComponent = nullptr;
-	PreviousFloorPreviousTransform = FTransform::Identity;
+	// Now that our wall check has potentially updated our current velocity, we need to update it here now
+	CurrentVelocity = TargetVelocity;
 
 
-	// 
-	Speed = CalculatedMovementOffset.Size() * InverseDeltaTime;
+	// Set our speed to be the size of our current velocity
+	Speed = CurrentVelocity.Size(); // CalculatedMovementOffset.Size() * InverseDeltaTime;
 
 
 
 	// Calculate whether we are moving
-	IsMoving = (CalculatedMovementOffset.SizeSquared() > 0.0f);
+	IsMoving = (Speed > 5.0f);
 
 	// Calculate the last velocity rotation iff we are moving
-	if (IsMoving) LastVelocityRotation = CalculatedMovementOffset.ToOrientationRotator();
+	if (IsMoving) LastVelocityRotation = CurrentVelocity.ToOrientationRotator();
 
 
+	// Check to see if there is a surface in front of us that we might land on with our current velocity
+	FPhysicsInterface::GeomSweepSingle(GetWorld(), FloorCollisionShape, CurrentCollisionRotation, CollisionResult, CollisionResult.TraceEnd,
+		CollisionResult.TraceEnd + (FVector(CurrentVelocity.X, CurrentVelocity.Y, FMath::Clamp(CurrentVelocity.Z, -4000.0f, -200.0f)).GetUnsafeNormal() * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, -4000.0f), FVector2D(50.0f, 2000.0f), CurrentVelocity.Z)),
+		ECollisionChannel::ECC_Visibility, FCollisionQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam);
+
+	// If there is something to land on and we are falling, then set our prediction time to be the time it took to hit said thing, else set to -1.0f, as we have no prediction
+	InAirPredictionTime = ((CollisionResult.bBlockingHit && CurrentVelocity.Z < -200.0f) ? CollisionResult.Time : -1.0f);
 
 
-	// 
-	if (RotationState == RotationStateEnum::Aiming) {
+	// If we are aiming, then...
+	if (RotationState == ERotationState::Aiming) {
 
-		// 
+		// Rotate our skeleton to face our rotator component (our current camera rotation) and set our in-air rotation to be the character skeleton's relative rotation
 		SmoothCharacterRotation(FRotator(0.0, RotatorComponent->GetRelativeRotation().Yaw, 0.0), 0.0f, 15.0f, CurrentDeltaTime);
 		InAirRotation = CharacterSkeleton->GetRelativeRotation();
 	}
 
-	// 
+	// Else, if we are not aiming, then...
 	else {
 
-		// 
+		// Rotate our skeleton to face our current in-air rotation
 		SmoothCharacterRotation(FRotator(0.0, InAirRotation.Yaw, 0.0), 0.0f, 5.0f, CurrentDeltaTime);
 	}
 
-	// 
+	// If the user is pressing their movement inputs, then check for potential ledges to mantle mid-air
 	if (HasMovementInput) {
 
 		// 
@@ -759,7 +805,34 @@ void AAbstractCharacter::CalculateFloatingMovement() {
 void AAbstractCharacter::CalculateCollisionOffset() {
 
 	// 
-	// 
+	/*if (FPhysicsInterface::GeomSweepSingle(GetWorld(), CollisionShape, CurrentCollisionRotation, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + (TargetVelocity * CurrentDeltaTime), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
+
+		//
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Red, FString(TEXT("We have collided with a wall! Oh no!")));
+
+
+		//
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Blue, FString(TEXT("TargetVelocity:")) + TargetVelocity.ToString());
+
+		//
+		TargetVelocity = (((FVector(CollisionResult.ImpactPoint.X, CollisionResult.ImpactPoint.Y, CollisionResult.Location.Z) + (TargetVelocity.GetSafeNormal() * (-1.1 * CurrentRadius))) - CurrentCollisionWorldPosition) * InverseDeltaTime);
+
+		//
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Silver, FString(TEXT("TargetVelocity:")) + TargetVelocity.ToString());
+
+
+		// Could also be potentially replaced with TargetVelocity *= CollisionResult.Time;
+		//TargetVelocity = ((CollisionResult.Location - CollisionResult.TraceStart) * InverseDeltaTime);
+
+		//
+		//TargetVelocity *= CollisionResult.Time;
+
+		//
+		//FMTDResult LocalPenetrationResult;
+		//if (CollisionResult.Component->ComputePenetration(LocalPenetrationResult, CollisionShape, CollisionResult.Location, CurrentCollisionRotation)) {
+		//	TargetVelocity = (((CollisionResult.Location + (LocalPenetrationResult.Direction * LocalPenetrationResult.Distance)) - CurrentCollisionWorldPosition) * InverseDeltaTime);
+		//}
+	}*/
 }
 
 
@@ -770,13 +843,13 @@ void AAbstractCharacter::StorePreviousValues() {
 	PreviousVelocity = CurrentVelocity;
 
 	// Store the current aim yaw as previous now
-	PreviousAimYaw = this->RotatorComponent->GetRelativeRotation().Yaw;
+	PreviousAimYaw = RotatorComponent->GetRelativeRotation().Yaw;
 
 	// 
 	PreviousMovementState = CurrentMovementState;
 
 	// 
-	PreviousActorRotation = this->CharacterSkeleton->GetRelativeRotation();
+	PreviousActorRotation = CharacterSkeleton->GetRelativeRotation();
 }
 
 
@@ -784,17 +857,17 @@ void AAbstractCharacter::StorePreviousValues() {
 void AAbstractCharacter::DrawDebugShapes() {
 
 	// 
-	DebugCapsuleCollision->SetRelativeLocation(FVector(0.0, 0.0, CurrentHalfHeight + CharacterCollisionModel.MaxStepHeight[static_cast<uint32>(CurrentStance)]));
-	DebugCapsuleCollision->SetCapsuleHalfHeight(CurrentHalfHeight);
-	DebugCapsuleCollision->SetCapsuleRadius(CurrentRadius);
+	DebugCapsuleCollision->SetRelativeLocation(FVector(0.0, 0.0, WallCollisionShape.GetCapsuleHalfHeight() + FloorCollisionShape.GetCapsuleHalfHeight()));
+	DebugCapsuleCollision->SetCapsuleHalfHeight(WallCollisionShape.GetCapsuleHalfHeight());
+	DebugCapsuleCollision->SetCapsuleRadius(WallCollisionShape.GetCapsuleRadius());
 
 
 	// Draw a debug arrow to visualize our actual movement
-	DebugVelocityArrow->SetWorldScale3D(FVector(Speed / ((AllowedGait == GaitStateEnum::Running ? CurrentMovementData.MaxRunningSpeed : (AllowedGait == GaitStateEnum::FastWalking ? CurrentMovementData.MaxFastWalkSpeed : CurrentMovementData.MaxWalkSpeed)))));
+	DebugVelocityArrow->SetWorldScale3D(FVector(Speed / CurrentMovementData.MaxSpeed[static_cast<uint8>(AllowedGait)]));
 	DebugVelocityArrow->ArrowLength = Speed;
 	if (!CalculatedMovementOffset.IsNearlyZero()) DebugVelocityArrow->SetWorldRotation(CalculatedMovementOffset.ToOrientationRotator());
 
 	// Draw a debug arrow to visualize what our wanted direction is
-	FVector LocalVector = (MovementInput * ((AllowedGait == GaitStateEnum::Running ? CurrentMovementData.MaxRunningSpeed : (AllowedGait == GaitStateEnum::FastWalking ? CurrentMovementData.MaxFastWalkSpeed : CurrentMovementData.MaxWalkSpeed))) * CurrentDeltaTime);
+	FVector LocalVector = (MovementInput * (CurrentMovementData.MaxSpeed[static_cast<uint8>(AllowedGait)] * CurrentDeltaTime));
 	DebugMovementArrow->SetWorldRotation(LocalVector.ToOrientationRotator());
 }

@@ -1,10 +1,15 @@
 // TreeTrunkStudios (c) 2023
 
+
+// 
 #pragma once
 
+
+// 
 #include "CoreMinimal.h"
 #include "Subsystems/EngineSubsystem.h"
 #include "SettingsOptionsStruct.h"
+#include "Containers/Union.h"
 #include "GameSettingsSubsystem.generated.h"
 
 

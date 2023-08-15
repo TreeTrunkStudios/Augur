@@ -13,8 +13,8 @@
 
 
 // 
-UENUM(BlueprintType)
-enum class MovementStateEnum : uint8 {
+UENUM()
+enum class EMovementState : uint8 {
 	Grounded,
 	Airborne,
 	Mantling,
@@ -24,57 +24,57 @@ enum class MovementStateEnum : uint8 {
 	Sliding,
 	Swimming,
 	Floating,
-	Num
+	Num UMETA(Hidden)
 };
 
 
 // 
-UENUM(BlueprintType)
-enum class GaitStateEnum : uint8 {
+UENUM()
+enum class EGaitState : uint8 {
 	Walking,
 	FastWalking,
 	Running,
-	Num
+	Num UMETA(Hidden)
 };
 
 
 // 
-UENUM(BlueprintType)
-enum class RotationStateEnum : uint8 {
+UENUM()
+enum class ERotationState : uint8 {
 	VelocityDirection,
 	LookingDirection,
 	Aiming,
-	Num
+	Num UMETA(Hidden)
 };
 
 
 // 
-UENUM(BlueprintType)
-enum class ViewModeEnum : uint8 {
+UENUM()
+enum class EViewMode : uint8 {
 	FirstPerson,
 	ThirdPerson,
-	Num
+	Num UMETA(Hidden)
 };
 
 
 // 
-UENUM(BlueprintType)
-enum class MovementDirectionEnum : uint8 {
+UENUM()
+enum class EMovementDirection : uint8 {
 	Forward,
 	Right,
 	Left,
 	Backward,
-	Num
+	Num UMETA(Hidden)
 };
 
 
 // 
-UENUM(BlueprintType)
-enum class StanceEnum : uint8 {
+UENUM()
+enum class EStance : uint8 {
 	Standing,
 	Crouching,
 	Prone,
-	Num
+	Num UMETA(Hidden)
 };
 
 
@@ -129,6 +129,10 @@ struct FMovementAnimationDataStruct {
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
+	float InAirPredictionTime;
+
+	// 
+	UPROPERTY(BlueprintReadWrite)
 	FRotator AimingRotation;
 
 	// 
@@ -145,35 +149,27 @@ struct FMovementAnimationDataStruct {
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
-	MovementStateEnum MovementState;
+	EMovementState MovementState;
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
-	MovementStateEnum PreviousMovementState;
+	EMovementState PreviousMovementState;
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
-	RotationStateEnum RotationMode;
+	ERotationState RotationMode;
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
-	GaitStateEnum Gait;
+	EGaitState Gait;
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
-	uint8 MovementAction;
+	EStance Stance;
 
 	// 
 	UPROPERTY(BlueprintReadWrite)
-	StanceEnum Stance;
-
-	// 
-	UPROPERTY(BlueprintReadWrite)
-	ViewModeEnum ViewMode;
-
-	// 
-	UPROPERTY(BlueprintReadWrite)
-	uint8 OverlayState;
+	EViewMode ViewMode;
 
 	// 
 	//UFUNCTION(BlueprintCallable, BlueprintPure, meta=(BlueprintThreadSafe))
@@ -194,6 +190,7 @@ struct FMovementAnimationDataStruct {
 		LocalString += (FString(TEXT("CapsuleRadius: ")) + FString::SanitizeFloat(CapsuleRadius) + FString("\n"));
 		LocalString += (FString(TEXT("CapsuleHalfHeight: ")) + FString::SanitizeFloat(CapsuleHalfHeight) + FString("\n"));
 		LocalString += (FString(TEXT("MaxAcceleration: ")) + FString::SanitizeFloat(MaxAcceleration) + FString("\n"));
+		LocalString += (FString(TEXT("InAirPredictionTime: ")) + FString::SanitizeFloat(InAirPredictionTime) + FString("\n"));
 		LocalString += (FString(TEXT("AimingRotation: ")) + AimingRotation.ToString() + FString("\n"));
 		LocalString += (FString(TEXT("ActorPreviousRotation: ")) + ActorPreviousRotation.ToString() + FString("\n"));
 		LocalString += (FString(TEXT("ActorControlRotation: ")) + ActorControlRotation.ToString() + FString("\n"));
@@ -202,10 +199,8 @@ struct FMovementAnimationDataStruct {
 		LocalString += (FString(TEXT("PreviousMovementState: ")) + FString::FromInt((int32)PreviousMovementState) + FString("\n"));
 		LocalString += (FString(TEXT("RotationMode: ")) + FString::FromInt((int32)RotationMode) + FString("\n"));
 		LocalString += (FString(TEXT("Gait: ")) + FString::FromInt((int32)Gait) + FString("\n"));
-		LocalString += (FString(TEXT("MovementAction: ")) + FString::FromInt(MovementAction) + FString("\n"));
 		LocalString += (FString(TEXT("Stance: ")) + FString::FromInt((int32)Stance) + FString("\n"));
 		LocalString += (FString(TEXT("ViewMode: ")) + FString::FromInt((int32)ViewMode) + FString("\n"));
-		LocalString += (FString(TEXT("OverlayState: ")) + FString::FromInt(OverlayState) + FString("\n"));
 
 		// 
 		return LocalString;

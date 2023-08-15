@@ -206,7 +206,7 @@ protected:
 	float CrouchingPlayRate;
 
 	// 
-	MovementDirectionEnum MovementDirection;
+	EMovementDirection MovementDirection;
 
 	// 
 	bool IsDynamicMontageGateOpen = true;
@@ -318,19 +318,19 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool GetShouldNotMove() const { return (this->GetShouldMove() == false); }
+	inline bool GetShouldNotMove() const { return (GetShouldMove() == false); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool WasPreviouslyRolling() const { return (MovementAnimationData.PreviousMovementState == MovementStateEnum::Rolling); }
+	inline bool WasPreviouslyRolling() const { return (MovementAnimationData.PreviousMovementState == EMovementState::Rolling); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsRagdoll() const { return (MovementAnimationData.MovementState == MovementStateEnum::Ragdoll); }
+	inline bool IsRagdoll() const { return (MovementAnimationData.MovementState == EMovementState::Ragdoll); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotRagdoll() const { return (MovementAnimationData.MovementState != MovementStateEnum::Ragdoll); }
+	inline bool IsNotRagdoll() const { return (MovementAnimationData.MovementState != EMovementState::Ragdoll); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -338,71 +338,71 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsRunning() const { return (MovementAnimationData.Gait == GaitStateEnum::Running); }
+	inline bool IsRunning() const { return (MovementAnimationData.Gait == EGaitState::Running); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsFastWalking() const { return (MovementAnimationData.Gait == GaitStateEnum::FastWalking); }
+	inline bool IsFastWalking() const { return (MovementAnimationData.Gait == EGaitState::FastWalking); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsWalking() const { return (MovementAnimationData.Gait == GaitStateEnum::Walking); }
+	inline bool IsWalking() const { return (MovementAnimationData.Gait == EGaitState::Walking); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotWalkingAndNotMainGroundedWeightFull() const { return ((MovementAnimationData.Gait != GaitStateEnum::Walking) && (FMath::IsNearlyEqualByULP(MainGroundedStateMachineWeight, 1.0f) == false)); }
+	inline bool IsNotWalkingAndNotMainGroundedWeightFull() const { return ((MovementAnimationData.Gait != EGaitState::Walking) && (FMath::IsNearlyEqualByULP(MainGroundedStateMachineWeight, 1.0f) == false)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotWalkingAndMainGroundedWeightFull() const { return ((MovementAnimationData.Gait != GaitStateEnum::Walking) && FMath::IsNearlyEqualByULP(MainGroundedStateMachineWeight, 1.0f)); }
+	inline bool IsNotWalkingAndMainGroundedWeightFull() const { return ((MovementAnimationData.Gait != EGaitState::Walking) && FMath::IsNearlyEqualByULP(MainGroundedStateMachineWeight, 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsWalkingAndWeightGaitLow() const { return (this->IsWalking() && (this->GetCurveValue(FName(TEXT("Weight_Gait"))) < 1.2f)); }
+	inline bool IsWalkingAndWeightGaitLow() const { return (IsWalking() && (GetCurveValue(FName(TEXT("Weight_Gait"))) < 1.2f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsPerformingAnAction() const { return ((MovementAnimationData.MovementState == MovementStateEnum::Mantling) || (MovementAnimationData.MovementState == MovementStateEnum::LadderClimbing) || (MovementAnimationData.MovementState == MovementStateEnum::Rolling)); }
+	inline bool IsPerformingAnAction() const { return ((MovementAnimationData.MovementState == EMovementState::Mantling) || (MovementAnimationData.MovementState == EMovementState::LadderClimbing) || (MovementAnimationData.MovementState == EMovementState::Rolling)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotPerformingAnAction() const { return (this->IsPerformingAnAction() == false); }
+	inline bool IsNotPerformingAnAction() const { return (IsPerformingAnAction() == false); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsStanding() const { return (MovementAnimationData.Stance == StanceEnum::Standing); }
+	inline bool IsStanding() const { return (MovementAnimationData.Stance == EStance::Standing); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsCrouching() const { return (MovementAnimationData.Stance == StanceEnum::Crouching); }
+	inline bool IsCrouching() const { return (MovementAnimationData.Stance == EStance::Crouching); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsProne() const { return (MovementAnimationData.Stance == StanceEnum::Prone); }
+	inline bool IsProne() const { return (MovementAnimationData.Stance == EStance::Prone); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsMovingOrRotating() const { return (this->GetShouldMove() || this->IsRotatingLeft() || this->IsRotatingRight()); }
+	inline bool IsMovingOrRotating() const { return (GetShouldMove() || IsRotatingLeft() || IsRotatingRight()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsGrounded() const { return (MovementAnimationData.MovementState == MovementStateEnum::Grounded); }
+	inline bool IsGrounded() const { return (MovementAnimationData.MovementState == EMovementState::Grounded); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotGrounded() const { return (MovementAnimationData.MovementState != MovementStateEnum::Grounded); }
+	inline bool IsNotGrounded() const { return (MovementAnimationData.MovementState != EMovementState::Grounded); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsAirborne() const { return (MovementAnimationData.MovementState == MovementStateEnum::Airborne); }
+	inline bool IsAirborne() const { return (MovementAnimationData.MovementState == EMovementState::Airborne); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotAirborne() const { return (MovementAnimationData.MovementState != MovementStateEnum::Airborne); }
+	inline bool IsNotAirborne() const { return (MovementAnimationData.MovementState != EMovementState::Airborne); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotGroundedOrNotStanding() const { return (!this->IsGrounded() || !this->IsStanding()); }
+	inline bool IsNotGroundedOrNotStanding() const { return (!IsGrounded() || !IsStanding()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -422,15 +422,15 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsRotating() const { return (this->IsRotatingLeft() || this->IsRotatingRight()); }
+	inline bool IsRotating() const { return (IsRotatingLeft() || IsRotatingRight()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool HasMovementInputOrIsRotating() const { return (this->HasMovementInput() || this->IsRotating()); }
+	inline bool HasMovementInputOrIsRotating() const { return (HasMovementInput() || IsRotating()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool HasMovementInputOrIsRotatingOrSpeedIsSprinting() const { return (this->HasMovementInputOrIsRotating() || MovementAnimationData.Speed > 650.0f); }
+	inline bool HasMovementInputOrIsRotatingOrSpeedIsSprinting() const { return (HasMovementInputOrIsRotating() || MovementAnimationData.Speed > 650.0f); }
 
 	// FMath::Clamp(GetSkelMeshComponent()->GetPhysicsLinearVelocity(FName(TEXT("root"))).Size() * (1.0f / 1000.0f), 0.0f, 1.0f);
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -502,11 +502,11 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsVelocityDirection() const { return (MovementAnimationData.RotationMode == RotationStateEnum::VelocityDirection); }
+	inline bool IsVelocityDirection() const { return (MovementAnimationData.RotationMode == ERotationState::VelocityDirection); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsNotVelocityDirection() const { return (MovementAnimationData.RotationMode != RotationStateEnum::VelocityDirection); }
+	inline bool IsNotVelocityDirection() const { return (MovementAnimationData.RotationMode != ERotationState::VelocityDirection); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -522,19 +522,19 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsLookingLeftAndBackToLookingForwards() const { return (this->IsSmoothedLookingForward() && (LookTowardsCameraStatesLookingLeftAndBackStateWeight != 1.0f)); }
+	inline bool IsLookingLeftAndBackToLookingForwards() const { return (IsSmoothedLookingForward() && (LookTowardsCameraStatesLookingLeftAndBackStateWeight != 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsLookingForwardsToLookingLeftAndBack() const { return (this->IsSmoothedLookingBackLeft() && (LookTowardsCameraStatesLookingForwardsStateWeight != 1.0f)); }
+	inline bool IsLookingForwardsToLookingLeftAndBack() const { return (IsSmoothedLookingBackLeft() && (LookTowardsCameraStatesLookingForwardsStateWeight != 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsLookingRightAndBackToLookingForwards() const { return (this->IsSmoothedLookingForward() && (LookTowardsCameraStatesLookingRightAndBackStateWeight != 1.0f)); }
+	inline bool IsLookingRightAndBackToLookingForwards() const { return (IsSmoothedLookingForward() && (LookTowardsCameraStatesLookingRightAndBackStateWeight != 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsLookingForwardsToLookingRightAndBack() const { return (this->IsSmoothedLookingBackRight() && (LookTowardsCameraStatesLookingForwardsStateWeight != 1.0f)); }
+	inline bool IsLookingForwardsToLookingRightAndBack() const { return (IsSmoothedLookingBackRight() && (LookTowardsCameraStatesLookingForwardsStateWeight != 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -542,7 +542,7 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline FVector GetYawTime() const { return FVector(this->GetLeftYawTime(), this->GetRightYawTime(), this->GetForwardYawTime()); }
+	inline FVector GetYawTime() const { return FVector(GetLeftYawTime(), GetRightYawTime(), GetForwardYawTime()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -626,11 +626,11 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline float GetArmLeftLayeringMeshSpaceCurveValue() const { return (1.0f - FMath::Floor(this->GetArmLeftLayeringLocalSpaceCurveValue())); }
+	inline float GetArmLeftLayeringMeshSpaceCurveValue() const { return (1.0f - FMath::Floor(GetArmLeftLayeringLocalSpaceCurveValue())); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline float GetArmRightLayeringMeshSpaceCurveValue() const { return (1.0f - FMath::Floor(this->GetArmRightLayeringLocalSpaceCurveValue())); }
+	inline float GetArmRightLayeringMeshSpaceCurveValue() const { return (1.0f - FMath::Floor(GetArmRightLayeringLocalSpaceCurveValue())); }
 
 	// FMath::Clamp(((MovementAnimationData.AimYawRate - 90.0f) * (1.0f / 180.0f) * (3.0f - 1.15f)) + 1.15f, 1.15f, 3.0f);
 	// FMath::Clamp(((MovementAnimationData.AimYawRate - 90.0f) * 0.01027777777777778f) + 1.15f, 1.15f, 3.0f);
@@ -679,23 +679,23 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline MovementDirectionEnum GetMovementDirection() const { return MovementDirection; }
+	inline EMovementDirection GetMovementDirection() const { return MovementDirection; }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsMovementDirectionForward() const { return (MovementDirection == MovementDirectionEnum::Forward); }
+	inline bool IsMovementDirectionForward() const { return (MovementDirection == EMovementDirection::Forward); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsMovementDirectionBackward() const { return (MovementDirection == MovementDirectionEnum::Backward); }
+	inline bool IsMovementDirectionBackward() const { return (MovementDirection == EMovementDirection::Backward); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsMovementDirectionLeft() const { return (MovementDirection == MovementDirectionEnum::Left); }
+	inline bool IsMovementDirectionLeft() const { return (MovementDirection == EMovementDirection::Left); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsMovementDirectionRight() const { return (MovementDirection == MovementDirectionEnum::Right); }
+	inline bool IsMovementDirectionRight() const { return (MovementDirection == EMovementDirection::Right); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -723,7 +723,7 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsCrouchedMovingToCrouchedStop() const { return (this->GetShouldNotMove() && (CrouchingLocomotionStatesMovingStateWeight == 1.0f)); }
+	inline bool IsCrouchedMovingToCrouchedStop() const { return (GetShouldNotMove() && (CrouchingLocomotionStatesMovingStateWeight == 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -751,59 +751,59 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsHipOrientationNegativeAndFeetCrossingZero() const { return ((this->GetHipOrientationBiasCurveValue() < -0.5f) && this->IsFeetCrossingZero()); }
+	inline bool IsHipOrientationNegativeAndFeetCrossingZero() const { return ((GetHipOrientationBiasCurveValue() < -0.5f) && IsFeetCrossingZero()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsHipOrientationPositiveAndFeetCrossingZero() const { return ((this->GetHipOrientationBiasCurveValue() > 0.5f) && this->IsFeetCrossingZero()); }
+	inline bool IsHipOrientationPositiveAndFeetCrossingZero() const { return ((GetHipOrientationBiasCurveValue() > 0.5f) && IsFeetCrossingZero()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsHipOrientationAbsSmall() const { return ((FMath::Abs(this->GetHipOrientationBiasCurveValue()) < 0.5f)); }
+	inline bool IsHipOrientationAbsSmall() const { return ((FMath::Abs(GetHipOrientationBiasCurveValue()) < 0.5f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsHipOrientationAbsLarge() const { return ((FMath::Abs(this->GetHipOrientationBiasCurveValue()) > 0.5f)); }
+	inline bool IsHipOrientationAbsLarge() const { return ((FMath::Abs(GetHipOrientationBiasCurveValue()) > 0.5f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsCrouchingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveLeftForwardOne() const { return (this->IsHipOrientationAbsSmall() && this->IsFeetCrossingZero() && (CrouchingDirectionalStatesMoveLeftForwardStateWeight == 1.0f)); }
+	inline bool IsCrouchingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveLeftForwardOne() const { return (IsHipOrientationAbsSmall() && IsFeetCrossingZero() && (CrouchingDirectionalStatesMoveLeftForwardStateWeight == 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsCrouchingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveRightBackwardOne() const { return (this->IsHipOrientationAbsSmall() && this->IsFeetCrossingZero() && (CrouchingDirectionalStatesMoveRightBackwardStateWeight == 1.0f)); }
+	inline bool IsCrouchingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveRightBackwardOne() const { return (IsHipOrientationAbsSmall() && IsFeetCrossingZero() && (CrouchingDirectionalStatesMoveRightBackwardStateWeight == 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsStandingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveLeftBackwardOne() const { return (this->IsHipOrientationAbsSmall() && this->IsFeetCrossingZero() && (StandingDirectionalStatesMoveLeftBackwardStateWeight == 1.0f)); }
+	inline bool IsStandingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveLeftBackwardOne() const { return (IsHipOrientationAbsSmall() && IsFeetCrossingZero() && (StandingDirectionalStatesMoveLeftBackwardStateWeight == 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsStandingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveRightBackwardOne() const { return (this->IsHipOrientationAbsSmall() && this->IsFeetCrossingZero() && (StandingDirectionalStatesMoveRightBackwardStateWeight == 1.0f)); }
+	inline bool IsStandingHipOrientationAbsSmallAndFeetCrossingZeroAndMoveRightBackwardOne() const { return (IsHipOrientationAbsSmall() && IsFeetCrossingZero() && (StandingDirectionalStatesMoveRightBackwardStateWeight == 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsBasePoseCrouchedCurveValueLarge() const { return (this->GetBasePoseCrouchedCurveValue() >= 0.5f); }
+	inline bool IsBasePoseCrouchedCurveValueLarge() const { return (GetBasePoseCrouchedCurveValue() >= 0.5f); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsBasePoseCrouchedCurveValueSmall() const { return (this->GetBasePoseCrouchedCurveValue() < 0.5f); }
+	inline bool IsBasePoseCrouchedCurveValueSmall() const { return (GetBasePoseCrouchedCurveValue() < 0.5f); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsFeetPositionLeft() const { return FMath::IsNegativeOrNegativeZero(this->GetFeetPositionCurveValue()); }
+	inline bool IsFeetPositionLeft() const { return FMath::IsNegativeOrNegativeZero(GetFeetPositionCurveValue()); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsFeetPositionRight() const { return (this->IsFeetPositionLeft() == false); }
+	inline bool IsFeetPositionRight() const { return (IsFeetPositionLeft() == false); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsFeetPositionAbsLocking() const { return (FMath::Abs(this->GetFeetPositionCurveValue()) >= 0.5f); }
+	inline bool IsFeetPositionAbsLocking() const { return (FMath::Abs(GetFeetPositionCurveValue()) >= 0.5f); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsFeetPositionAbsPlanting() const { return (FMath::Abs(this->GetFeetPositionCurveValue()) < 0.5f); }
+	inline bool IsFeetPositionAbsPlanting() const { return (FMath::Abs(GetFeetPositionCurveValue()) < 0.5f); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -815,7 +815,7 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsShouldNotMoveAndStandingLocomotionStatesMovingStateWeightFull() const { return (this->GetShouldNotMove() && (StandingLocomotionStatesMovingStateWeight == 1.0f)); }
+	inline bool IsShouldNotMoveAndStandingLocomotionStatesMovingStateWeightFull() const { return (GetShouldNotMove() && (StandingLocomotionStatesMovingStateWeight == 1.0f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
@@ -823,7 +823,7 @@ protected:
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))
-	inline bool IsPivotAndStandingLocomotionDetailCurrentStateTimeActive() const { return (this->GetPivot() && (StandingLocomotionDetailCurrentStateTime > 0.1f)); }
+	inline bool IsPivotAndStandingLocomotionDetailCurrentStateTimeActive() const { return (GetPivot() && (StandingLocomotionDetailCurrentStateTime > 0.1f)); }
 
 	// 
 	UFUNCTION(BlueprintPure, meta=(BlueprintThreadSafe))

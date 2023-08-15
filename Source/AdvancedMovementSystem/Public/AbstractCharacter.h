@@ -17,11 +17,15 @@
 #include "Curves/CurveVector.h"
 #include "MovementAnimationData.h"
 #include "CharacterData.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "PhysicalFloorTypes.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "AbstractCharacter.generated.h"
 
 
 // 
-static const float LARGEST_SLOPE_ANGLE = 0.75f;
+static const double MAX_SPEED_ANGLE_MULTIPLIER = 0.2;
+static const double LARGEST_SLOPE_ANGLE = FMath::Cos(FMath::DegreesToRadians(48.5));
 
 
 // 
@@ -33,32 +37,24 @@ struct FMovementData {
 public:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Units="Centimeters"))
-	float MaxWalkSpeed = 165.0f;
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGaitState", Units="Centimeters"))
+	float MaxSpeed[EGaitState::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Units="Centimeters"))
-	float MaxFastWalkSpeed = 350.0f;
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGaitState"))
+	float MaxAcceleration[EGaitState::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Units="Centimeters"))
-	float MaxRunningSpeed = 600.0f;
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGaitState"))
+	float MaxDeceleration[EGaitState::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="GaitStateEnum"))
-	float MaxAcceleration[static_cast<uint32>(GaitStateEnum::Num)];
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGaitState"))
+	float GroundFriction[EGaitState::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="GaitStateEnum"))
-	float MaxDeceleration[static_cast<uint32>(GaitStateEnum::Num)];
-
-	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="GaitStateEnum"))
-	float GroundFriction[static_cast<uint32>(GaitStateEnum::Num)];
-
-	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="GaitStateEnum"))
-	float RotationInterpSpeed[static_cast<uint32>(GaitStateEnum::Num)];
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EGaitState"))
+	float RotationInterpSpeed[EGaitState::Num];
 };
 
 
@@ -71,20 +67,20 @@ struct FCollisionModel {
 public:
 
 	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="StanceEnum", Units="Centimeters"))
-	float HalfHeight[static_cast<uint32>(StanceEnum::Num)];
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EStance", Units="Centimeters"))
+	float HalfHeight[EStance::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="StanceEnum", Units="Centimeters"))
-	float Radius[static_cast<uint32>(StanceEnum::Num)];
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EStance", Units="Centimeters"))
+	float Radius[EStance::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="StanceEnum", Units="Centimeters"))
-	float MaxStepHeight[static_cast<uint32>(StanceEnum::Num)];
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EStance", Units="Centimeters"))
+	float MaxStepHeight[EStance::Num];
 
 	// 
-	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="StanceEnum", Units="Degrees"))
-	FQuat CollisionRotation[static_cast<uint32>(StanceEnum::Num)];
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EStance"))
+	FQuat CollisionRotation[EStance::Num];
 };
 
 
@@ -147,6 +143,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FMovementData CrouchingAimingMovementData;
 
+	// 
+	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EPhysicalSurfaceType"))
+	double FloorTypeSpeedMultiplier[EPhysicalSurfaceType::Num];
+
 
 // 
 protected:
@@ -174,7 +174,11 @@ protected:
 	FHitResult CollisionResult;
 	FCollisionQueryParams CollisionQueryParameters{NAME_None, false, this};
 	//FCollisionResponseParams CollisionResponseParameters;
-	FCollisionShape CollisionShape;
+	FCollisionShape WallCollisionShape;
+	FCollisionShape FloorCollisionShape;
+
+	// 
+	FQuat CurrentCollisionRotation;
 
 	// 
 	FMovementData CurrentMovementData = StandingLookingDirectionMovementData;
@@ -188,8 +192,6 @@ protected:
 	// In meters per second
 	FVector CurrentVelocity = FVector::ZeroVector;
 	FVector TargetVelocity = FVector::ZeroVector;
-	//FVector VelocityUnitVector = FVector::ZeroVector;
-	//float VelocityMagnitude = 0.0f;
 
 	// 
 	FVector PreviousVelocity = FVector::ZeroVector;
@@ -210,24 +212,22 @@ protected:
 	float PreviousAimYaw = 0.0f;
 
 	// 
-	MovementStateEnum CurrentMovementState = MovementStateEnum::Grounded;
-	MovementStateEnum PreviousMovementState = MovementStateEnum::Grounded;
+	float InAirPredictionTime = -1.0f;
 
 	// 
-	GaitStateEnum AllowedGait = GaitStateEnum::FastWalking;
-	GaitStateEnum ActualGait = GaitStateEnum::FastWalking;
-	GaitStateEnum CurrentGait = GaitStateEnum::FastWalking;
-	GaitStateEnum DesiredGait = GaitStateEnum::FastWalking;
-	GaitStateEnum PreviousGait = GaitStateEnum::FastWalking;
+	EMovementState CurrentMovementState = EMovementState::Grounded;
+	EMovementState PreviousMovementState = EMovementState::Grounded;
 
 	// 
-	StanceEnum CurrentStance = StanceEnum::Standing;
-	RotationStateEnum RotationState = RotationStateEnum::LookingDirection;
+	EGaitState AllowedGait = EGaitState::FastWalking;
+	EGaitState ActualGait = EGaitState::FastWalking;
+	EGaitState CurrentGait = EGaitState::FastWalking;
+	EGaitState DesiredGait = EGaitState::FastWalking;
+	EGaitState PreviousGait = EGaitState::FastWalking;
 
 	// 
-	float CurrentHalfHeight = CharacterCollisionModel.HalfHeight[static_cast<uint32>(CurrentStance)];
-	float CurrentRadius = CharacterCollisionModel.Radius[static_cast<uint32>(CurrentStance)];
-	float CurrentStepHeight = CharacterCollisionModel.MaxStepHeight[static_cast<uint32>(CurrentStance)];
+	EStance CurrentStance = EStance::Standing;
+	ERotationState RotationState = ERotationState::LookingDirection;
 
 	// 
 	bool IsMoving = false;
@@ -239,7 +239,7 @@ protected:
 	FRotator TargetRotation = FRotator::ZeroRotator;
 
 	// 
-	bool IsThirdPerson = false;
+	EViewMode CurrentViewMode = EViewMode::FirstPerson;
 
 
 // 
@@ -284,19 +284,30 @@ protected:
 	virtual void ToggleSprint();
 
 	// 
+	UFUNCTION(BlueprintCallable)
 	virtual void ToggleCameraPerspective();
 
 	// 
-	virtual void SetStance(const StanceEnum GivenStance);
+	virtual void SetStance(const EStance GivenStance);
 
 	// 
-	virtual void SetGait(const GaitStateEnum GivenGait);
+	virtual void SetGait(const EGaitState GivenGait);
 
 	// 
 	virtual void SetSprint(const bool IsWantingToSprint);
 
 	// 
-	virtual void SetCameraPerspective(const bool NewIsThirdPerson);
+	virtual void SetCameraPerspective(const EViewMode NewViewMode);
+
+
+// 
+protected:
+
+	// 
+	virtual double GetSpeedMultipleByAngle();
+
+	// 
+	virtual double GetSpeedMultipleByFloorType();
 
 
 // 

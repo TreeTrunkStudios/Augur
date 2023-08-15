@@ -14,20 +14,17 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 	// Call the parent function first
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
+#ifdef UE_BUILD_DEBUG
 	// If delta seconds is invalid or the owning actor does not implement UMovementAnimationData, then simply return
 	if (DeltaSeconds <= 0.0f || !this->GetOwningActor()->Implements<UMovementAnimationData>() || !Cast<IMovementAnimationData>(this->GetOwningActor())) {
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, FColor::Black, FString(TEXT("This UBaseAnimInstance does not have a valid DeltaSeconds value or does not implement UMovementAnimationData!!")));
 		return;
 	}
-
+#endif
 
 	//// Update Character Information
 	// Collect the movement animation data from the owning actor now and store it all in MovementAnimationData
 	IMovementAnimationData::Execute_GetMovementAnimationData(this->GetOwningActor(), MovementAnimationData);
-
-
-	// 
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, FColor::Black, MovementAnimationData.ToString());
 }
 
 
@@ -72,7 +69,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 	SmoothedAimingAngle.Y = LocalStore.Pitch;
 
 	// 
-	if (MovementAnimationData.RotationMode != RotationStateEnum::VelocityDirection) {
+	if (MovementAnimationData.RotationMode != ERotationState::VelocityDirection) {
 
 		// 
 		AimSweepTime = FMath::GetMappedRangeValueClamped(FVector2D(-90.0f, 90.0f), FVector2D(1.0f, 0.0f), AimingAngle.Y);
@@ -128,7 +125,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 	switch (MovementAnimationData.MovementState) {
 
 		// 
-	case MovementStateEnum::Grounded:
+	case EMovementState::Grounded:
 
 		//// Handle left foot locking and IK
 		if (GetCurveValue(FName(TEXT("Enable_FootIK_L"))) > 0.0f) {
@@ -183,7 +180,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 			CollisionQueryParams.bDebugQuery = true;
 
 			// 
-			if (GetWorld()->LineTraceSingleByChannel(CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams)) {
+			if (FPhysicsInterface::RaycastSingle(GetWorld(), CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams, FCollisionResponseParams::DefaultResponseParam)) {
 
 				// 
 				FVector CurrentFootOffsetTarget = ((CollisionTestResults.ImpactPoint + (CollisionTestResults.ImpactNormal * 13.5f)) - (CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, (50.0f - 13.5f))));
@@ -265,7 +262,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 			CollisionQueryParams.bDebugQuery = true;
 
 			// 
-			if (GetWorld()->LineTraceSingleByChannel(CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams)) {
+			if (FPhysicsInterface::RaycastSingle(GetWorld(), CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams, FCollisionResponseParams::DefaultResponseParam)) {
 
 				// 
 				FVector CurrentFootOffsetTarget = ((CollisionTestResults.ImpactPoint + (CollisionTestResults.ImpactNormal * 13.5f)) - (CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, (50.0f - 13.5f))));
@@ -316,7 +313,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 		break;
 
 		// 
-	case MovementStateEnum::Airborne:
+	case EMovementState::Airborne:
 
 		//// Set Pelvis IK Offset
 		// 
@@ -351,7 +348,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 	switch (MovementAnimationData.MovementState) {
 
 		// Do this functionality only while grounded
-	case MovementStateEnum::Grounded:
+	case EMovementState::Grounded:
 
 		// Calculate whether we should be moving or not
 		bool NewShouldMove;
@@ -403,7 +400,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 			LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(RelativeAccelerationAmount.Y, RelativeAccelerationAmount.X), DeltaSeconds, 4.0f);
 
 			// 
-			WalkRunBlend = ((MovementAnimationData.Gait != GaitStateEnum::Walking) ? 1.0f : 0.0f);
+			WalkRunBlend = ((MovementAnimationData.Gait != EGaitState::Walking) ? 1.0f : 0.0f);
 			StrideBlend = FMath::Lerp(StrideBlendNormalWalkCurve->GetFloatValue(MovementAnimationData.Speed), StrideBlendNormalRunCurve->GetFloatValue(MovementAnimationData.Speed), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 1.0f, 0.0f, 1.0f));
 			StrideBlend = FMath::Lerp(StrideBlend, StrideBlendCrouchedWalkCurve->GetFloatValue(MovementAnimationData.Speed), GetCurveValue(FName(TEXT("BasePose_CLF"))));
 
@@ -418,8 +415,8 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 
 			//// Update Rotation Values
 			// 
-			if (MovementAnimationData.Gait == GaitStateEnum::Running || MovementAnimationData.RotationMode == RotationStateEnum::VelocityDirection) {
-				MovementDirection = MovementDirectionEnum::Forward;
+			if (MovementAnimationData.Gait == EGaitState::Running || MovementAnimationData.RotationMode == ERotationState::VelocityDirection) {
+				MovementDirection = EMovementDirection::Forward;
 			}
 
 			// 
@@ -436,31 +433,32 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 				float Angle = (MovementAnimationData.Velocity.ToOrientationRotator() - MovementAnimationData.AimingRotation).GetNormalized().Yaw;
 
 				// 
-				if ((MovementDirection != MovementDirectionEnum::Forward || MovementDirection != MovementDirectionEnum::Backward) ?
+				if ((MovementDirection != EMovementDirection::Forward || MovementDirection != EMovementDirection::Backward) ?
 					((Angle >= (FLThreshold - Buffer)) && (Angle <= (FRThreshold + Buffer))) :
 					((Angle >= (FLThreshold + Buffer)) && (Angle <= (FRThreshold - Buffer)))) {
-					MovementDirection = MovementDirectionEnum::Forward;
+					MovementDirection = EMovementDirection::Forward;
 				}
 
 				// 
-				else if ((MovementDirection != MovementDirectionEnum::Right || MovementDirection != MovementDirectionEnum::Left) ?
+				else if ((MovementDirection != EMovementDirection::Right || MovementDirection != EMovementDirection::Left) ?
 					((Angle >= (FRThreshold - Buffer)) && (Angle <= (BRThreshold + Buffer))) :
 					((Angle >= (FRThreshold + Buffer)) && (Angle <= (BRThreshold - Buffer)))) {
-					MovementDirection = MovementDirectionEnum::Right;
+					MovementDirection = EMovementDirection::Right;
 				}
 
 				// 
-				else if ((MovementDirection != MovementDirectionEnum::Right || MovementDirection != MovementDirectionEnum::Left) ?
+				else if ((MovementDirection != EMovementDirection::Right || MovementDirection != EMovementDirection::Left) ?
 					((Angle >= (BLThreshold - Buffer)) && (Angle <= (FLThreshold + Buffer))) :
 					((Angle >= (BLThreshold + Buffer)) && (Angle <= (FLThreshold - Buffer)))) {
-					MovementDirection = MovementDirectionEnum::Left;
+					MovementDirection = EMovementDirection::Left;
 				}
 
 				// 
 				else {
-					MovementDirection = MovementDirectionEnum::Backward;
+					MovementDirection = EMovementDirection::Backward;
 				}
 			}
+
 
 			// 
 			float LocalInTime = (MovementAnimationData.Velocity.ToOrientationRotator() - MovementAnimationData.ActorControlRotation).GetNormalized().Yaw;
@@ -481,7 +479,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 
 			//// Do while NOT moving
 			//// Can Rotate In Place
-			if (MovementAnimationData.ViewMode == ViewModeEnum::FirstPerson || MovementAnimationData.RotationMode == RotationStateEnum::Aiming) {
+			if (MovementAnimationData.ViewMode == EViewMode::FirstPerson || MovementAnimationData.RotationMode == ERotationState::Aiming) {
 
 				//// Rotate In Place Check
 				// 
@@ -501,8 +499,8 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 			}
 
 			//// Can Turn In Place
-			if (MovementAnimationData.ViewMode == ViewModeEnum::ThirdPerson &&
-				MovementAnimationData.RotationMode == RotationStateEnum::LookingDirection &&
+			if (MovementAnimationData.ViewMode == EViewMode::ThirdPerson &&
+				MovementAnimationData.RotationMode == ERotationState::LookingDirection &&
 				this->GetCurveValue(FName(TEXT("Enable_Transition"))) > 0.99f) {
 
 				//// Turn In Place Check
@@ -558,33 +556,31 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 		break;
 
 		// Do this functionality only while airborne
-	case MovementStateEnum::Airborne:
+	case EMovementState::Airborne:
 
 		//// Update Airborne Values
-		// 
-		float FallSpeed;
-		FallSpeed = MovementAnimationData.Velocity.Z;
+
+		// If we have an airborne landing prediction time, then we lerp to that, else we set it to 0.0f, as we have no prediction
+		LandPrediction = ((MovementAnimationData.InAirPredictionTime >= 0.0f) ? FMath::Lerp(LandPredictionCurve->GetFloatValue(MovementAnimationData.InAirPredictionTime), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction")))) : 0.0f);
 
 		// If we are falling at a large negative speed, and we get a hit for the land prediction shape trace, then we calculate our land prediction float
-		if (FallSpeed < -200.0f && GetWorld()->SweepSingleByChannel(CollisionTestResults, MovementAnimationData.ActorWorldLocation,
-			MovementAnimationData.ActorWorldLocation + (FVector(MovementAnimationData.Velocity.X, MovementAnimationData.Velocity.Y, FMath::Clamp(MovementAnimationData.Velocity.Z, -4000.0f, -200.0f)).GetUnsafeNormal() * FMath::GetMappedRangeValueClamped(FVector2D(0.0f, -4000.0f), FVector2D(50.0f, 2000.0f), MovementAnimationData.Velocity.Z)),
-			FQuat::Identity, ECollisionChannel::ECC_Visibility, FCollisionShape::MakeCapsule(MovementAnimationData.CapsuleRadius, MovementAnimationData.CapsuleHalfHeight))) {
-			LandPrediction = FMath::Lerp(LandPredictionCurve->GetFloatValue(CollisionTestResults.Time), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction"))));
+		/*if (MovementAnimationData.InAirPredictionTime >= 0.0f) {
+			LandPrediction = FMath::Lerp(LandPredictionCurve->GetFloatValue(MovementAnimationData.InAirPredictionTime), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction"))));
 		}
 
 		// Else, we set the land prediction float to be zero, as we have no prediction whatsoever
 		else {
 			LandPrediction = 0.0f;
-		}
+		}*/
 
 		// 
-		LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(MovementAnimationData.ActorControlRotation.UnrotateVector(MovementAnimationData.Velocity) * (1.0f / 350.0f)) * LeanInAirCurve->GetFloatValue(FallSpeed), DeltaSeconds, 4.0f);
+		LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(MovementAnimationData.ActorControlRotation.Vector()) * LeanInAirCurve->GetFloatValue(MovementAnimationData.Velocity.Z), DeltaSeconds, 4.0f);
 
 		// 
 		break;
 
 		// Do this functionality only while ragdolling
-	case MovementStateEnum::Ragdoll:
+	case EMovementState::Ragdoll:
 
 		//// Update Ragdoll Values
 		// 
@@ -603,7 +599,7 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 
 	//// Simplistic calculations to remove a bunch of the calculation overhead/burden from above into more simplistic thread-able formats
 	// 
-	if (this->IsGrounded() && (ShouldMove == false) && (MovementAnimationData.ViewMode == ViewModeEnum::FirstPerson || MovementAnimationData.RotationMode == RotationStateEnum::Aiming)) {
+	if (this->IsGrounded() && (ShouldMove == false) && (MovementAnimationData.ViewMode == EViewMode::FirstPerson || MovementAnimationData.RotationMode == ERotationState::Aiming)) {
 
 		// 
 		RotateLeft = (AimingAngle.X < -50.0f);
@@ -720,10 +716,6 @@ void UBaseAnimInstance::PivotTriggered() {
 
 		// 
 		if (Pivot == true) {
-
-			// 
-			//FTimerHandle UnusedHandle;
-			//GetWorld()->GetTimerManager().SetTimer(UnusedHandle, [&]() { this->Pivot = false; }, 0.1f, false);
 			PivotTimer = 0.1f;
 		}
 	}
@@ -743,8 +735,6 @@ void UBaseAnimInstance::JumpTriggered() {
 		JumpPlayRate = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 600.0f), FVector2D(1.2f, 1.5f), MovementAnimationData.Speed);
 
 		// 
-		//FTimerHandle UnusedHandle;
-		//GetWorld()->GetTimerManager().SetTimer(UnusedHandle, [&]() { this->Jumped = false; }, 0.1f, false);
 		JumpedTimer = 0.1f;
 	}
 }
@@ -768,7 +758,7 @@ void UBaseAnimInstance::TurnInPlace(const FRotator TargetRotation, const float P
 	float InvertedAnimatedAngle;
 
 	// If we are standing, then this is true, else it is false
-	bool ScaleTurnAngle = (MovementAnimationData.Stance == StanceEnum::Standing);
+	bool ScaleTurnAngle = (MovementAnimationData.Stance == EStance::Standing);
 
 	// If true, we want the (N) variant, else we want the (CLF) variant
 	FName SlotName = FName(ScaleTurnAngle ? TEXT("(N) Turn/Rotate") : TEXT("(CLF) Turn/Rotate"));
@@ -831,10 +821,6 @@ void UBaseAnimInstance::PlayDynamicTransition(const float RetriggerDelay, UAnimS
 
 		// 
 		IsDynamicMontageGateOpen = false;
-
-		// 
-		//FTimerHandle UnusedHandle;
-		//GetWorld()->GetTimerManager().SetTimer(UnusedHandle, [&]() { this->IsDynamicMontageGateOpen = true; }, RetriggerDelay, false);
 
 		// 
 		DynamicMontageGateTimer = RetriggerDelay;
