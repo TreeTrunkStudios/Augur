@@ -25,6 +25,9 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 	//// Update Character Information
 	// Collect the movement animation data from the owning actor now and store it all in MovementAnimationData
 	IMovementAnimationData::Execute_GetMovementAnimationData(this->GetOwningActor(), MovementAnimationData);
+
+	// 
+	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, DeltaSeconds, FColor::Black, MovementAnimationData.ToString());
 }
 
 
@@ -85,114 +88,84 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 		InputYawOffsetTime = FMath::FInterpTo(InputYawOffsetTime, FMath::GetMappedRangeValueClamped(FVector2D(-180.0f, 180.0f), FVector2D(0.0f, 1.0f), (MovementAnimationData.MovementInput.ToOrientationRotator() - MovementAnimationData.ActorControlRotation).GetNormalized().Yaw), DeltaSeconds, 8.0f);
 	}
 
-	// Get the left (X), right (Y), and forward (Z) yaw times from the smoothed aiming angle
-	//YawTime.X = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 180.0f), FVector2D(0.5f, 0.0f), FMath::Abs(SmoothedAimingAngle.X));
-	//YawTime.Y = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 180.0f), FVector2D(0.5f, 1.0f), FMath::Abs(SmoothedAimingAngle.X));
-	//YawTime.Z = FMath::GetMappedRangeValueClamped(FVector2D(-180.0f, 180.0f), FVector2D(0.0f, 1.0f), SmoothedAimingAngle.X);
-
-
-	//// Update Layer Values
-	// 
-	//EnableAimOffset = FMath::Lerp(1.0f, 0.0f, GetCurveValue(FName(TEXT("Mask_AimOffset"))));
-
-	// 
-	//BasePoseN = GetCurveValue(FName(TEXT("BasePose_N")));
-	//BasePoseCLF = GetCurveValue(FName(TEXT("BasePose_CLF")));
-
-	// 
-	//SpineAdd = GetCurveValue(FName(TEXT("Layering_Spine_Add")));
-	//HeadAdd = GetCurveValue(FName(TEXT("Layering_Head_Add")));
-	//ArmLeftAdd = GetCurveValue(FName(TEXT("Layering_Arm_L_Add")));
-	//ArmRightAdd = GetCurveValue(FName(TEXT("Layering_Arm_R_Add")));
-
-	// 
-	//HandLeft = GetCurveValue(FName(TEXT("Layering_Hand_L")));
-	//HandRight = GetCurveValue(FName(TEXT("Layering_Hand_R")));
-
-	// 
-	//EnableHandLeftIK = FMath::Lerp(0.0f, GetCurveValue(FName(TEXT("Enable_HandIK_L"))), GetCurveValue(FName(TEXT("Layering_Arm_L"))));
-	//EnableHandRightIK = FMath::Lerp(0.0f, GetCurveValue(FName(TEXT("Enable_HandIK_R"))), GetCurveValue(FName(TEXT("Layering_Arm_R"))));
-
-	// 
-	//ArmLeftLocalSpace = GetCurveValue(FName(TEXT("Layering_Arm_L_LS")));
-	//ArmLeftMeshSpace = (1.0f - FMath::Floor(ArmLeftLocalSpace));
-	//ArmRightLocalSpace = GetCurveValue(FName(TEXT("Layering_Arm_R_LS")));
-	//ArmRightMeshSpace = (1.0f - FMath::Floor(ArmRightLocalSpace));
-
 
 	//// Update Foot IK
 	// 
 	switch (MovementAnimationData.MovementState) {
 
 		// 
-	case EMovementState::Grounded:
+		case EMovementState::Grounded:
 
-		//// Handle left foot locking and IK
-		if (GetCurveValue(FName(TEXT("Enable_FootIK_L"))) > 0.0f) {
-
-			// 
-			float FootLockCurveValue = GetCurveValue(FName(TEXT("FootLock_L")));
-
-			// 
-			if (FootLockCurveValue >= 0.99f || FootLockCurveValue < LeftFootLockAlpha) {
-				LeftFootLockAlpha = FootLockCurveValue;
-			}
-
-			// 
-			if (LeftFootLockAlpha >= 0.99f) {
+			//// Handle left foot locking and IK
+			if (GetCurveValue(FName(TEXT("Enable_FootIK_L"))) > 0.0f) {
 
 				// 
-				FTransform CurrentBoneTransform = this->GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_l")), RTS_Component);
+				const float FootLockCurveValue = GetCurveValue(FName(TEXT("FootLock_L")));
 
 				// 
-				LeftFootLockLocation = CurrentBoneTransform.GetLocation();
-				LeftFootLockRotation = CurrentBoneTransform.GetRotation().Rotator();
-			}
-
-			// 
-			if (LeftFootLockAlpha > 0.0f) {
-
-				// 
-				FRotator RotationDifference = FRotator::ZeroRotator;
-
-				// 
-				if (MovementAnimationData.IsMoving) {
-					RotationDifference = (MovementAnimationData.ActorControlRotation - MovementAnimationData.ActorPreviousRotation);
-					RotationDifference.Normalize();
+				if (FootLockCurveValue >= 0.99f || FootLockCurveValue < LeftFootLockAlpha) {
+					LeftFootLockAlpha = FootLockCurveValue;
 				}
 
 				// 
-				LeftFootLockLocation = (LeftFootLockLocation -
-					MovementAnimationData.ActorControlRotation.UnrotateVector(
-						MovementAnimationData.Velocity * DeltaSeconds)).RotateAngleAxis(
-							RotationDifference.Yaw, FVector(0.0f, 0.0f, -1.0f));
+				if (LeftFootLockAlpha >= 0.99f) {
+
+					// 
+					const FTransform CurrentBoneTransform = this->GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_l")), RTS_Component);
+
+					// 
+					LeftFootLockLocation = CurrentBoneTransform.GetLocation();
+					LeftFootLockRotation = CurrentBoneTransform.GetRotation().Rotator();
+				}
 
 				// 
-				LeftFootLockRotation -= RotationDifference;
-				LeftFootLockRotation.Normalize();
-			}
+				if (LeftFootLockAlpha > 0.0f) {
 
-			// 
-			FVector CurrentFootFloorLocationIK = GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("ik_foot_l")));
-			CurrentFootFloorLocationIK.Z = (GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("root"))).Z + 50.0f);
+					// 
+					FRotator RotationDifference = FRotator::ZeroRotator;
 
-			FCollisionQueryParams CollisionQueryParams{NAME_None, true, GetOwningActor()};
-			CollisionQueryParams.bDebugQuery = true;
+					// 
+					if (MovementAnimationData.IsMoving) {
+						RotationDifference = (MovementAnimationData.ActorControlRotation - MovementAnimationData.ActorPreviousRotation);
+						RotationDifference.Normalize();
+					}
 
-			// 
-			if (FPhysicsInterface::RaycastSingle(GetWorld(), CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams, FCollisionResponseParams::DefaultResponseParam)) {
+					// 
+					LeftFootLockLocation = (LeftFootLockLocation -
+						MovementAnimationData.ActorControlRotation.UnrotateVector(
+							MovementAnimationData.Velocity * DeltaSeconds)).RotateAngleAxis(
+								RotationDifference.Yaw, FVector(0.0f, 0.0f, -1.0f));
+
+					// 
+					LeftFootLockRotation -= RotationDifference;
+					LeftFootLockRotation.Normalize();
+				}
 
 				// 
-				FVector CurrentFootOffsetTarget = ((CollisionTestResults.ImpactPoint + (CollisionTestResults.ImpactNormal * 13.5f)) - (CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, (50.0f - 13.5f))));
+				FVector CurrentFootFloorLocationIK = GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("ik_foot_l")));
+				CurrentFootFloorLocationIK.Z = (GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("root"))).Z + 50.0f);
 
 				// 
-				FRotator CurrentRotationOffsetTarget = FRotator((-180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.X, CollisionTestResults.ImpactNormal.Z), 0.0f, (180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.Y, CollisionTestResults.ImpactNormal.Z));
+				const FCollisionQueryParams CollisionQueryParams{NAME_None, true, GetOwningActor()};
 
 				// 
-				LeftFootOffsetLocation = FMath::VInterpTo(LeftFootOffsetLocation, CurrentFootOffsetTarget, DeltaSeconds, ((LeftFootOffsetLocation.Z > CurrentFootOffsetTarget.Z) ? 30.0f : 15.0f));
+				if (FPhysicsInterface::RaycastSingle(GetWorld(), CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams, FCollisionResponseParams::DefaultResponseParam)) {
 
-				// 
-				LeftFootOffsetRotation = FMath::RInterpTo(LeftFootOffsetRotation, CurrentRotationOffsetTarget, DeltaSeconds, 30.0f);
+					// 
+					const FVector CurrentFootOffsetTarget = ((CollisionTestResults.ImpactPoint + (CollisionTestResults.ImpactNormal * 13.5f)) - (CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, (50.0f - 13.5f))));
+
+					// 
+					LeftFootOffsetLocation = FMath::VInterpTo(LeftFootOffsetLocation, CurrentFootOffsetTarget, DeltaSeconds, ((LeftFootOffsetLocation.Z > CurrentFootOffsetTarget.Z) ? 30.0f : 15.0f));
+
+					// 
+					LeftFootOffsetRotation = FMath::RInterpTo(LeftFootOffsetRotation, FRotator((-180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.X, CollisionTestResults.ImpactNormal.Z), 0.0f, (180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.Y, CollisionTestResults.ImpactNormal.Z)), DeltaSeconds, 30.0f);
+				}
+
+				// Else, reset the offset information back to zeros
+				else {
+					LeftFootOffsetLocation = FVector::ZeroVector;
+					LeftFootOffsetRotation = FRotator::ZeroRotator;
+				}
 			}
 
 			// Else, reset the offset information back to zeros
@@ -200,81 +173,77 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 				LeftFootOffsetLocation = FVector::ZeroVector;
 				LeftFootOffsetRotation = FRotator::ZeroRotator;
 			}
-		}
 
-		// Else, reset the offset information back to zeros
-		else {
-			LeftFootOffsetLocation = FVector::ZeroVector;
-			LeftFootOffsetRotation = FRotator::ZeroRotator;
-		}
-
-		//// Handle right foot locking and IK
-		if (GetCurveValue(FName(TEXT("Enable_FootIK_R"))) > 0.0f) {
-
-			// 
-			float FootLockCurveValue = GetCurveValue(FName(TEXT("FootLock_R")));
-
-			// 
-			if (FootLockCurveValue >= 0.99f || FootLockCurveValue < RightFootLockAlpha) {
-				RightFootLockAlpha = FootLockCurveValue;
-			}
-
-			// 
-			if (RightFootLockAlpha >= 0.99f) {
+			//// Handle right foot locking and IK
+			if (GetCurveValue(FName(TEXT("Enable_FootIK_R"))) > 0.0f) {
 
 				// 
-				FTransform CurrentBoneTransform = this->GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_r")), RTS_Component);
+				const float FootLockCurveValue = GetCurveValue(FName(TEXT("FootLock_R")));
 
 				// 
-				RightFootLockLocation = CurrentBoneTransform.GetLocation();
-				RightFootLockRotation = CurrentBoneTransform.GetRotation().Rotator();
-			}
-
-			// 
-			if (RightFootLockAlpha > 0.0f) {
-
-				// 
-				FRotator RotationDifference = FRotator::ZeroRotator;
-
-				// 
-				if (MovementAnimationData.IsMoving) {
-					RotationDifference = (MovementAnimationData.ActorControlRotation - MovementAnimationData.ActorPreviousRotation);
-					RotationDifference.Normalize();
+				if (FootLockCurveValue >= 0.99f || FootLockCurveValue < RightFootLockAlpha) {
+					RightFootLockAlpha = FootLockCurveValue;
 				}
 
 				// 
-				RightFootLockLocation = (RightFootLockLocation -
-					MovementAnimationData.ActorControlRotation.UnrotateVector(
-						MovementAnimationData.Velocity * DeltaSeconds)).RotateAngleAxis(
-							RotationDifference.Yaw, FVector(0.0f, 0.0f, -1.0f));
+				if (RightFootLockAlpha >= 0.99f) {
+
+					// 
+					const FTransform CurrentBoneTransform = this->GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_r")), RTS_Component);
+
+					// 
+					RightFootLockLocation = CurrentBoneTransform.GetLocation();
+					RightFootLockRotation = CurrentBoneTransform.GetRotation().Rotator();
+				}
 
 				// 
-				RightFootLockRotation -= RotationDifference;
-				RightFootLockRotation.Normalize();
-			}
+				if (RightFootLockAlpha > 0.0f) {
 
-			// 
-			FVector CurrentFootFloorLocationIK = GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("ik_foot_r")));
-			CurrentFootFloorLocationIK.Z = (GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("root"))).Z + 50.0f);
+					// 
+					FRotator RotationDifference = FRotator::ZeroRotator;
 
-			// 
-			FCollisionQueryParams CollisionQueryParams{NAME_None, true, GetOwningActor()};
-			CollisionQueryParams.bDebugQuery = true;
+					// 
+					if (MovementAnimationData.IsMoving) {
+						RotationDifference = (MovementAnimationData.ActorControlRotation - MovementAnimationData.ActorPreviousRotation);
+						RotationDifference.Normalize();
+					}
 
-			// 
-			if (FPhysicsInterface::RaycastSingle(GetWorld(), CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams, FCollisionResponseParams::DefaultResponseParam)) {
+					// 
+					RightFootLockLocation = (RightFootLockLocation -
+						MovementAnimationData.ActorControlRotation.UnrotateVector(
+							MovementAnimationData.Velocity * DeltaSeconds)).RotateAngleAxis(
+								RotationDifference.Yaw, FVector(0.0f, 0.0f, -1.0f));
 
-				// 
-				FVector CurrentFootOffsetTarget = ((CollisionTestResults.ImpactPoint + (CollisionTestResults.ImpactNormal * 13.5f)) - (CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, (50.0f - 13.5f))));
-
-				// 
-				FRotator CurrentRotationOffsetTarget = FRotator((-180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.X, CollisionTestResults.ImpactNormal.Z), 0.0f, (180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.Y, CollisionTestResults.ImpactNormal.Z));
-
-				// 
-				RightFootOffsetLocation = FMath::VInterpTo(RightFootOffsetLocation, CurrentFootOffsetTarget, DeltaSeconds, ((RightFootOffsetLocation.Z > CurrentFootOffsetTarget.Z) ? 30.0f : 15.0f));
+					// 
+					RightFootLockRotation -= RotationDifference;
+					RightFootLockRotation.Normalize();
+				}
 
 				// 
-				RightFootOffsetRotation = FMath::RInterpTo(RightFootOffsetRotation, CurrentRotationOffsetTarget, DeltaSeconds, 30.0f);
+				FVector CurrentFootFloorLocationIK = GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("ik_foot_r")));
+				CurrentFootFloorLocationIK.Z = (GetSkelMeshComponent()->GetSocketLocation(FName(TEXT("root"))).Z + 50.0f);
+
+				// 
+				const FCollisionQueryParams CollisionQueryParams{NAME_None, true, GetOwningActor()};
+
+				// 
+				if (FPhysicsInterface::RaycastSingle(GetWorld(), CollisionTestResults, CurrentFootFloorLocationIK, CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, 90.0f), ECollisionChannel::ECC_Visibility, CollisionQueryParams, FCollisionResponseParams::DefaultResponseParam)) {
+
+					// 
+					const FVector CurrentFootOffsetTarget = ((CollisionTestResults.ImpactPoint + (CollisionTestResults.ImpactNormal * 13.5f)) - (CurrentFootFloorLocationIK - FVector(0.0f, 0.0f, (50.0f - 13.5f))));
+
+					// 
+					RightFootOffsetLocation = FMath::VInterpTo(RightFootOffsetLocation, CurrentFootOffsetTarget, DeltaSeconds, ((RightFootOffsetLocation.Z > CurrentFootOffsetTarget.Z) ? 30.0f : 15.0f));
+
+					// 
+					RightFootOffsetRotation = FMath::RInterpTo(RightFootOffsetRotation, FRotator((-180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.X, CollisionTestResults.ImpactNormal.Z), 0.0f, (180.0) / UE_DOUBLE_PI * FMath::Atan2(CollisionTestResults.ImpactNormal.Y, CollisionTestResults.ImpactNormal.Z)), DeltaSeconds, 30.0f);
+				}
+
+				// Else, reset the offset information back to zeros
+				else {
+					RightFootOffsetLocation = FVector::ZeroVector;
+					RightFootOffsetRotation = FRotator::ZeroRotator;
+				}
 			}
 
 			// Else, reset the offset information back to zeros
@@ -282,65 +251,58 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 				RightFootOffsetLocation = FVector::ZeroVector;
 				RightFootOffsetRotation = FRotator::ZeroRotator;
 			}
-		}
 
-		// Else, reset the offset information back to zeros
-		else {
-			RightFootOffsetLocation = FVector::ZeroVector;
-			RightFootOffsetRotation = FRotator::ZeroRotator;
-		}
-
-		//// Set Pelvis IK Offset
-		// 
-		PelvisAlpha = ((GetCurveValue(FName(TEXT("Enable_FootIK_L"))) + GetCurveValue(FName(TEXT("Enable_FootIK_R")))) * 0.5f);
-
-		// 
-		if (PelvisAlpha > 0.0f) {
+			//// Set Pelvis IK Offset
+			// 
+			PelvisAlpha = ((GetCurveValue(FName(TEXT("Enable_FootIK_L"))) + GetCurveValue(FName(TEXT("Enable_FootIK_R")))) * 0.5f);
 
 			// 
-			FVector PelvisTarget = ((LeftFootOffsetLocation.Z < RightFootOffsetLocation.Z) ? LeftFootOffsetLocation : RightFootOffsetLocation);
+			if (PelvisAlpha > 0.0f) {
+
+				// 
+				const FVector PelvisTarget = ((LeftFootOffsetLocation.Z < RightFootOffsetLocation.Z) ? LeftFootOffsetLocation : RightFootOffsetLocation);
+
+				// 
+				PelvisOffset = FMath::VInterpTo(PelvisOffset, PelvisTarget, DeltaSeconds, (PelvisTarget.Z > PelvisOffset.Z) ? 10.0f : 15.0f);
+			}
 
 			// 
-			PelvisOffset = FMath::VInterpTo(PelvisOffset, PelvisTarget, DeltaSeconds, (PelvisTarget.Z > PelvisOffset.Z) ? 10.0f : 15.0f);
-		}
+			else {
+				PelvisOffset = FVector::ZeroVector;
+			}
+
+			// 
+			break;
 
 		// 
-		else {
-			PelvisOffset = FVector::ZeroVector;
-		}
+		case EMovementState::Airborne:
+
+			//// Set Pelvis IK Offset
+			// 
+			PelvisAlpha = ((GetCurveValue(FName(TEXT("Enable_FootIK_L"))) + GetCurveValue(FName(TEXT("Enable_FootIK_R")))) * 0.5f);
+
+			// 
+			if (PelvisAlpha > 0.0f) {
+				PelvisOffset = FMath::VInterpTo(PelvisOffset, FVector::ZeroVector, DeltaSeconds, (0.0f > PelvisOffset.Z) ? 10.0f : 15.0f);
+			}
+
+			// 
+			else {
+				PelvisOffset = FVector::ZeroVector;
+			}
+
+			//// Reset IK Offsets
+			LeftFootOffsetLocation = FMath::VInterpTo(LeftFootOffsetLocation, FVector::ZeroVector, DeltaSeconds, 15.0f);
+			RightFootOffsetLocation = FMath::VInterpTo(RightFootOffsetLocation, FVector::ZeroVector, DeltaSeconds, 15.0f);
+			LeftFootOffsetRotation = FMath::RInterpTo(LeftFootOffsetRotation, FRotator::ZeroRotator, DeltaSeconds, 15.0f);
+			RightFootOffsetRotation = FMath::RInterpTo(RightFootOffsetRotation, FRotator::ZeroRotator, DeltaSeconds, 15.0f);
+
+			// 
+			break;
 
 		// 
-		break;
-
-		// 
-	case EMovementState::Airborne:
-
-		//// Set Pelvis IK Offset
-		// 
-		PelvisAlpha = ((GetCurveValue(FName(TEXT("Enable_FootIK_L"))) + GetCurveValue(FName(TEXT("Enable_FootIK_R")))) * 0.5f);
-
-		// 
-		if (PelvisAlpha > 0.0f) {
-			PelvisOffset = FMath::VInterpTo(PelvisOffset, FVector::ZeroVector, DeltaSeconds, (0.0f > PelvisOffset.Z) ? 10.0f : 15.0f);
-		}
-
-		// 
-		else {
-			PelvisOffset = FVector::ZeroVector;
-		}
-
-		//// Reset IK Offsets
-		LeftFootOffsetLocation = FMath::VInterpTo(LeftFootOffsetLocation, FVector::ZeroVector, DeltaSeconds, 15.0f);
-		RightFootOffsetLocation = FMath::VInterpTo(RightFootOffsetLocation, FVector::ZeroVector, DeltaSeconds, 15.0f);
-		LeftFootOffsetRotation = FMath::RInterpTo(LeftFootOffsetRotation, FRotator::ZeroRotator, DeltaSeconds, 15.0f);
-		RightFootOffsetRotation = FMath::RInterpTo(RightFootOffsetRotation, FRotator::ZeroRotator, DeltaSeconds, 15.0f);
-
-		// 
-		break;
-
-		// 
-	default:
-		break;
+		default:
+			break;
 	}
 
 
@@ -348,173 +310,176 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 	switch (MovementAnimationData.MovementState) {
 
 		// Do this functionality only while grounded
-	case EMovementState::Grounded:
+		case EMovementState::Grounded:
 
-		// Calculate whether we should be moving or not
-		bool NewShouldMove;
-		NewShouldMove = ((MovementAnimationData.IsMoving && MovementAnimationData.HasMovementInput) || (MovementAnimationData.Speed > 150.0f));
+			// Calculate whether we should be moving or not
+			bool NewShouldMove;
+			NewShouldMove = ((MovementAnimationData.IsMoving && MovementAnimationData.HasMovementInput) || (MovementAnimationData.Speed > 150.0f));
 
-		// If we are changing should move states, then...
-		if (ShouldMove != NewShouldMove) {
+			// If we are changing should move states, then...
+			if (ShouldMove != NewShouldMove) {
 
-			// Set the current state to the new state
-			ShouldMove = NewShouldMove;
+				// Set the current state to the new state
+				ShouldMove = NewShouldMove;
 
-			// If we have changed to be true, then...
-			if (ShouldMove) {
+				// If we have changed to be true, then...
+				if (ShouldMove) {
 
-				// Reset the rotation values
-				ElapsedDelayTime = 0.0f;
-				//RotateLeft = false;
-				//RotateRight = false;
-			}
-		}
-
-		// Else, if we are staying as a true state, then...
-		else if (ShouldMove) {
-
-			//// Do while moving
-			//// Update Movement Values
-			// 
-			FVector LocalRelativeVelocityDirection = MovementAnimationData.ActorControlRotation.UnrotateVector(MovementAnimationData.Velocity.GetSafeNormal(0.1f));
-
-			// 
-			float LocalInverseSummation = (1.0f / (FMath::Abs(LocalRelativeVelocityDirection.X) + FMath::Abs(LocalRelativeVelocityDirection.Y) + FMath::Abs(LocalRelativeVelocityDirection.Z)));
-
-			// 
-			FVector LocalRelativeDirection = (LocalRelativeVelocityDirection * LocalInverseSummation);
-
-			// 
-			VelocityBlend.X = FMath::FInterpTo(VelocityBlend.X, FMath::Clamp(LocalRelativeDirection.X, 0.0f, 1.0f), DeltaSeconds, 12.0f);
-			VelocityBlend.Y = FMath::FInterpTo(VelocityBlend.Y, FMath::Abs(FMath::Clamp(LocalRelativeDirection.X, -1.0f, 0.0f)), DeltaSeconds, 12.0f);
-			VelocityBlend.Z = FMath::FInterpTo(VelocityBlend.Z, FMath::Abs(FMath::Clamp(LocalRelativeDirection.Y, -1.0f, 0.0f)), DeltaSeconds, 12.0f);
-			VelocityBlend.W = FMath::FInterpTo(VelocityBlend.W, FMath::Clamp(LocalRelativeDirection.Y, 0.0f, 1.0f), DeltaSeconds, 12.0f);
-
-			// 
-			DiagonalScaleAmount = DiagonalScaleAmountCurve->GetFloatValue(FMath::Abs(VelocityBlend.X + VelocityBlend.Y));
-
-			// 
-			RelativeAccelerationAmount = MovementAnimationData.ActorControlRotation.UnrotateVector(MovementAnimationData.Acceleration.GetClampedToMaxSize(MovementAnimationData.MaxAcceleration) * (1.0f / MovementAnimationData.MaxAcceleration));
-
-			// 
-			LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(RelativeAccelerationAmount.Y, RelativeAccelerationAmount.X), DeltaSeconds, 4.0f);
-
-			// 
-			WalkRunBlend = ((MovementAnimationData.Gait != EGaitState::Walking) ? 1.0f : 0.0f);
-			StrideBlend = FMath::Lerp(StrideBlendNormalWalkCurve->GetFloatValue(MovementAnimationData.Speed), StrideBlendNormalRunCurve->GetFloatValue(MovementAnimationData.Speed), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 1.0f, 0.0f, 1.0f));
-			StrideBlend = FMath::Lerp(StrideBlend, StrideBlendCrouchedWalkCurve->GetFloatValue(MovementAnimationData.Speed), GetCurveValue(FName(TEXT("BasePose_CLF"))));
-
-			// 
-			StandingPlayRate = FMath::Lerp(MovementAnimationData.Speed * (1.0f / 150.0f), MovementAnimationData.Speed * (1.0f / 350.0f), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 1.0f, 0.0f, 1.0f));
-			StandingPlayRate = FMath::Lerp(StandingPlayRate, MovementAnimationData.Speed * (1.0f / 600.0f), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 2.0f, 0.0f, 1.0f));
-			StandingPlayRate = FMath::Clamp((StandingPlayRate / StrideBlend) / GetSkelMeshComponent()->GetComponentScale().Z, 0.0f, 3.0f);
-
-			// 
-			CrouchingPlayRate = FMath::Clamp(((MovementAnimationData.Speed * (1.0f / 150.0f)) / StrideBlend) / GetSkelMeshComponent()->GetComponentScale().Z, 0.0f, 2.0f);
-
-
-			//// Update Rotation Values
-			// 
-			if (MovementAnimationData.Gait == EGaitState::Running || MovementAnimationData.RotationMode == ERotationState::VelocityDirection) {
-				MovementDirection = EMovementDirection::Forward;
+					// Reset the rotation values
+					ElapsedDelayTime = 0.0f;
+					//RotateLeft = false;
+					//RotateRight = false;
+				}
 			}
 
-			// 
-			else {
+			// Else, if we are staying as a true state, then...
+			else if (ShouldMove) {
+
+				//// Do while moving
+				//// Update Movement Values
+				// 
+				const FVector LocalRelativeVelocityDirection = MovementAnimationData.ActorControlRotation.UnrotateVector(MovementAnimationData.Velocity.GetSafeNormal(0.1f));
 
 				// 
-				static const float Buffer = 5.0f;
-				static const float FRThreshold = 70.0f;
-				static const float FLThreshold = -70.0f;
-				static const float BRThreshold = 110.0f;
-				static const float BLThreshold = -110.0f;
+				const FVector LocalRelativeDirection = (LocalRelativeVelocityDirection * (1.0f / (FMath::Abs(LocalRelativeVelocityDirection.X) + FMath::Abs(LocalRelativeVelocityDirection.Y) + FMath::Abs(LocalRelativeVelocityDirection.Z))));
 
 				// 
-				float Angle = (MovementAnimationData.Velocity.ToOrientationRotator() - MovementAnimationData.AimingRotation).GetNormalized().Yaw;
+				VelocityBlend.X = FMath::FInterpTo(VelocityBlend.X, FMath::Clamp(LocalRelativeDirection.X, 0.0f, 1.0f), DeltaSeconds, 12.0f);
+				VelocityBlend.Y = FMath::FInterpTo(VelocityBlend.Y, FMath::Abs(FMath::Clamp(LocalRelativeDirection.X, -1.0f, 0.0f)), DeltaSeconds, 12.0f);
+				VelocityBlend.Z = FMath::FInterpTo(VelocityBlend.Z, FMath::Abs(FMath::Clamp(LocalRelativeDirection.Y, -1.0f, 0.0f)), DeltaSeconds, 12.0f);
+				VelocityBlend.W = FMath::FInterpTo(VelocityBlend.W, FMath::Clamp(LocalRelativeDirection.Y, 0.0f, 1.0f), DeltaSeconds, 12.0f);
 
 				// 
-				if ((MovementDirection != EMovementDirection::Forward || MovementDirection != EMovementDirection::Backward) ?
-					((Angle >= (FLThreshold - Buffer)) && (Angle <= (FRThreshold + Buffer))) :
-					((Angle >= (FLThreshold + Buffer)) && (Angle <= (FRThreshold - Buffer)))) {
+				DiagonalScaleAmount = DiagonalScaleAmountCurve->GetFloatValue(FMath::Abs(VelocityBlend.X + VelocityBlend.Y));
+
+				// 
+				RelativeAccelerationAmount = MovementAnimationData.ActorControlRotation.UnrotateVector(MovementAnimationData.Acceleration.GetClampedToMaxSize(MovementAnimationData.MaxAcceleration) * (1.0f / MovementAnimationData.MaxAcceleration));
+
+				// 
+				LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(RelativeAccelerationAmount.Y, RelativeAccelerationAmount.X), DeltaSeconds, 4.0f);
+
+				// 
+				WalkRunBlend = ((MovementAnimationData.Gait != EGaitState::Walking) ? 1.0f : 0.0f);
+				StrideBlend = FMath::Lerp(StrideBlendNormalWalkCurve->GetFloatValue(MovementAnimationData.Speed), StrideBlendNormalRunCurve->GetFloatValue(MovementAnimationData.Speed), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 1.0f, 0.0f, 1.0f));
+				StrideBlend = FMath::Lerp(StrideBlend, StrideBlendCrouchedWalkCurve->GetFloatValue(MovementAnimationData.Speed), GetCurveValue(FName(TEXT("BasePose_CLF"))));
+
+				// 
+				StandingPlayRate = FMath::Lerp(MovementAnimationData.Speed * (1.0f / 150.0f), MovementAnimationData.Speed * (1.0f / 350.0f), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 1.0f, 0.0f, 1.0f));
+				StandingPlayRate = FMath::Lerp(StandingPlayRate, MovementAnimationData.Speed * (1.0f / 600.0f), FMath::Clamp(GetCurveValue(FName(TEXT("Weight_Gait"))) - 2.0f, 0.0f, 1.0f));
+				StandingPlayRate = FMath::Clamp((StandingPlayRate / StrideBlend) / GetSkelMeshComponent()->GetComponentScale().Z, 0.0f, 3.0f);
+
+				// 
+				CrouchingPlayRate = FMath::Clamp(((MovementAnimationData.Speed * (1.0f / 150.0f)) / StrideBlend) / GetSkelMeshComponent()->GetComponentScale().Z, 0.0f, 2.0f);
+
+
+				//// Update Rotation Values
+				// 
+				if (MovementAnimationData.Gait == EGaitState::Running || MovementAnimationData.RotationMode == ERotationState::VelocityDirection) {
 					MovementDirection = EMovementDirection::Forward;
 				}
 
 				// 
-				else if ((MovementDirection != EMovementDirection::Right || MovementDirection != EMovementDirection::Left) ?
-					((Angle >= (FRThreshold - Buffer)) && (Angle <= (BRThreshold + Buffer))) :
-					((Angle >= (FRThreshold + Buffer)) && (Angle <= (BRThreshold - Buffer)))) {
-					MovementDirection = EMovementDirection::Right;
+				else {
+
+					// 
+					static const float Buffer = 5.0f;
+					static const float FRThreshold = 70.0f;
+					static const float FLThreshold = -70.0f;
+					static const float BRThreshold = 110.0f;
+					static const float BLThreshold = -110.0f;
+
+					// 
+					const float Angle = (MovementAnimationData.Velocity.ToOrientationRotator() - MovementAnimationData.AimingRotation).GetNormalized().Yaw;
+
+					// 
+					if ((MovementDirection != EMovementDirection::Forward || MovementDirection != EMovementDirection::Backward) ?
+						((Angle >= (FLThreshold - Buffer)) && (Angle <= (FRThreshold + Buffer))) :
+						((Angle >= (FLThreshold + Buffer)) && (Angle <= (FRThreshold - Buffer)))) {
+						MovementDirection = EMovementDirection::Forward;
+					}
+
+					// 
+					else if ((MovementDirection != EMovementDirection::Right || MovementDirection != EMovementDirection::Left) ?
+						((Angle >= (FRThreshold - Buffer)) && (Angle <= (BRThreshold + Buffer))) :
+						((Angle >= (FRThreshold + Buffer)) && (Angle <= (BRThreshold - Buffer)))) {
+						MovementDirection = EMovementDirection::Right;
+					}
+
+					// 
+					else if ((MovementDirection != EMovementDirection::Right || MovementDirection != EMovementDirection::Left) ?
+						((Angle >= (BLThreshold - Buffer)) && (Angle <= (FLThreshold + Buffer))) :
+						((Angle >= (BLThreshold + Buffer)) && (Angle <= (FLThreshold - Buffer)))) {
+						MovementDirection = EMovementDirection::Left;
+					}
+
+					// 
+					else {
+						MovementDirection = EMovementDirection::Backward;
+					}
 				}
 
+
 				// 
-				else if ((MovementDirection != EMovementDirection::Right || MovementDirection != EMovementDirection::Left) ?
-					((Angle >= (BLThreshold - Buffer)) && (Angle <= (FLThreshold + Buffer))) :
-					((Angle >= (BLThreshold + Buffer)) && (Angle <= (FLThreshold - Buffer)))) {
-					MovementDirection = EMovementDirection::Left;
+				const float LocalInTime = (MovementAnimationData.Velocity.ToOrientationRotator() - MovementAnimationData.ActorControlRotation).GetNormalized().Yaw;
+
+				// 
+				FVector LocalYaw = YawOffsetFrontBack->GetVectorValue(LocalInTime);
+				Yaw.X = LocalYaw.X;
+				Yaw.Y = LocalYaw.Y;
+
+				// 
+				LocalYaw = YawOffsetLeftRight->GetVectorValue(LocalInTime);
+				Yaw.Z = LocalYaw.X;
+				Yaw.W = LocalYaw.Y;
+			}
+
+			// Else, we are staying as a false state, so...
+			else {
+
+				//// Do while NOT moving
+				//// Can Rotate In Place
+				if (MovementAnimationData.ViewMode == EViewMode::FirstPerson || MovementAnimationData.RotationMode == ERotationState::Aiming) {
+
+					//// Rotate In Place Check
+					// 
+					//RotateLeft = (AimingAngle.X < -50.0f);
+					//RotateRight = (AimingAngle.X > 50.0f);
+
+					// 
+					//if (RotateLeft || RotateRight) {
+					//	RotateRate = FMath::GetMappedRangeValueClamped(FVector2D(90.0f, 270.0f), FVector2D(1.15f, 3.0f), MovementAnimationData.AimYawRate);
+					//}
 				}
 
 				// 
 				else {
-					MovementDirection = EMovementDirection::Backward;
+					//RotateLeft = false;
+					//RotateRight = false;
 				}
-			}
 
+				//// Can Turn In Place
+				if (MovementAnimationData.ViewMode == EViewMode::ThirdPerson &&
+					MovementAnimationData.RotationMode == ERotationState::LookingDirection &&
+					this->GetCurveValue(FName(TEXT("Enable_Transition"))) > 0.99f) {
 
-			// 
-			float LocalInTime = (MovementAnimationData.Velocity.ToOrientationRotator() - MovementAnimationData.ActorControlRotation).GetNormalized().Yaw;
+					//// Turn In Place Check
+					// 
+					if ((FMath::Abs(AimingAngle.X) > 45.0f) && (MovementAnimationData.AimYawRate < 50.0f)) {
 
-			// 
-			FVector LocalYaw = YawOffsetFrontBack->GetVectorValue(LocalInTime);
-			Yaw.X = LocalYaw.X;
-			Yaw.Y = LocalYaw.Y;
+						// 
+						ElapsedDelayTime += DeltaSeconds;
 
-			// 
-			LocalYaw = YawOffsetLeftRight->GetVectorValue(LocalInTime);
-			Yaw.Z = LocalYaw.X;
-			Yaw.W = LocalYaw.Y;
-		}
+						// 
+						if (ElapsedDelayTime > FMath::GetMappedRangeValueClamped(FVector2D(45.0f, 180.0f), FVector2D(0.75f, 0.0f), FMath::Abs(AimingAngle.X))) {
 
-		// Else, we are staying as a false state, so...
-		else {
-
-			//// Do while NOT moving
-			//// Can Rotate In Place
-			if (MovementAnimationData.ViewMode == EViewMode::FirstPerson || MovementAnimationData.RotationMode == ERotationState::Aiming) {
-
-				//// Rotate In Place Check
-				// 
-				//RotateLeft = (AimingAngle.X < -50.0f);
-				//RotateRight = (AimingAngle.X > 50.0f);
-
-				// 
-				//if (RotateLeft || RotateRight) {
-				//	RotateRate = FMath::GetMappedRangeValueClamped(FVector2D(90.0f, 270.0f), FVector2D(1.15f, 3.0f), MovementAnimationData.AimYawRate);
-				//}
-			}
-
-			// 
-			else {
-				//RotateLeft = false;
-				//RotateRight = false;
-			}
-
-			//// Can Turn In Place
-			if (MovementAnimationData.ViewMode == EViewMode::ThirdPerson &&
-				MovementAnimationData.RotationMode == ERotationState::LookingDirection &&
-				this->GetCurveValue(FName(TEXT("Enable_Transition"))) > 0.99f) {
-
-				//// Turn In Place Check
-				// 
-				if ((FMath::Abs(AimingAngle.X) > 45.0f) && (MovementAnimationData.AimYawRate < 50.0f)) {
+							//
+							this->TurnInPlace(FRotator(0.0f, MovementAnimationData.AimingRotation.Yaw, 0.0f), 1.0f, 0.0f, false);
+						}
+					}
 
 					// 
-					ElapsedDelayTime += DeltaSeconds;
-
-					// 
-					if (ElapsedDelayTime > FMath::GetMappedRangeValueClamped(FVector2D(45.0f, 180.0f), FVector2D(0.75f, 0.0f), FMath::Abs(AimingAngle.X))) {
-
-						//
-						this->TurnInPlace(FRotator(0.0f, MovementAnimationData.AimingRotation.Yaw, 0.0f), 1.0f, 0.0f, false);
+					else {
+						ElapsedDelayTime = 0.0f;
 					}
 				}
 
@@ -522,77 +487,71 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 				else {
 					ElapsedDelayTime = 0.0f;
 				}
+
+				//// Can Dynamic Transition
+				if (FMath::IsNearlyEqualByULP(this->GetCurveValue(FName(TEXT("Enable_Transition"))), 1.0f)) {
+
+					//// Dynamic Transition Check
+					// Check dynamic transition for the left foot
+					if ((GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("VB foot_target_l")), RTS_Component).GetLocation() -
+						GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_l")), RTS_Component).GetLocation()).SizeSquared() > 64.0f) {
+
+						//// Play Dynamic Transition
+						this->PlayDynamicTransition(0.1f, NormalTransitionRightDynamicAnim, 0.2f, 0.2f, 1.5f, 0.8f);
+					}
+
+					//// Dynamic Transition Check
+					// Check dynamic transition for the right foot
+					if ((GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("VB foot_target_r")), RTS_Component).GetLocation() -
+						GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_r")), RTS_Component).GetLocation()).SizeSquared() > 64.0f) {
+
+						//// Play Dynamic Transition
+						this->PlayDynamicTransition(0.1f, NormalTransitionLeftDynamicAnim, 0.2f, 0.2f, 1.5f, 0.8f);
+					}
+				}
 			}
 
 			// 
-			else {
-				ElapsedDelayTime = 0.0f;
-			}
-
-			//// Can Dynamic Transition
-			if (FMath::IsNearlyEqualByULP(this->GetCurveValue(FName(TEXT("Enable_Transition"))), 1.0f)) {
-
-				//// Dynamic Transition Check
-				// Check dynamic transition for the left foot
-				if ((GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("VB foot_target_l")), RTS_Component).GetLocation() -
-					GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_l")), RTS_Component).GetLocation()).SizeSquared() > 64.0f) {
-
-					//// Play Dynamic Transition
-					this->PlayDynamicTransition(0.1f, NormalTransitionRightDynamicAnim, 0.2f, 0.2f, 1.5f, 0.8f);
-				}
-
-				//// Dynamic Transition Check
-				// Check dynamic transition for the right foot
-				if ((GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("VB foot_target_r")), RTS_Component).GetLocation() -
-					GetSkelMeshComponent()->GetSocketTransform(FName(TEXT("ik_foot_r")), RTS_Component).GetLocation()).SizeSquared() > 64.0f) {
-
-					//// Play Dynamic Transition
-					this->PlayDynamicTransition(0.1f, NormalTransitionLeftDynamicAnim, 0.2f, 0.2f, 1.5f, 0.8f);
-				}
-			}
-		}
-
-		// 
-		break;
+			break;
 
 		// Do this functionality only while airborne
-	case EMovementState::Airborne:
+		case EMovementState::Airborne:
 
-		//// Update Airborne Values
+			//// Update Airborne Values
 
-		// If we have an airborne landing prediction time, then we lerp to that, else we set it to 0.0f, as we have no prediction
-		LandPrediction = ((MovementAnimationData.InAirPredictionTime >= 0.0f) ? FMath::Lerp(LandPredictionCurve->GetFloatValue(MovementAnimationData.InAirPredictionTime), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction")))) : 0.0f);
+			// If we have an airborne landing prediction time, then we lerp to that, else we set it to 0.0f, as we have no prediction
+			LandPrediction = ((MovementAnimationData.InAirPredictionTime >= 0.0f) ? FMath::Lerp(LandPredictionCurve->GetFloatValue(MovementAnimationData.InAirPredictionTime), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction")))) : 0.0f);
 
-		// If we are falling at a large negative speed, and we get a hit for the land prediction shape trace, then we calculate our land prediction float
-		/*if (MovementAnimationData.InAirPredictionTime >= 0.0f) {
-			LandPrediction = FMath::Lerp(LandPredictionCurve->GetFloatValue(MovementAnimationData.InAirPredictionTime), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction"))));
-		}
+			// If we are falling at a large negative speed, and we get a hit for the land prediction shape trace, then we calculate our land prediction float
+			/*if (MovementAnimationData.InAirPredictionTime >= 0.0f) {
+				LandPrediction = FMath::Lerp(LandPredictionCurve->GetFloatValue(MovementAnimationData.InAirPredictionTime), 0.0f, GetCurveValue(FName(TEXT("Mask_LandPrediction"))));
+			}
 
-		// Else, we set the land prediction float to be zero, as we have no prediction whatsoever
-		else {
-			LandPrediction = 0.0f;
-		}*/
+			// Else, we set the land prediction float to be zero, as we have no prediction whatsoever
+			else {
+				LandPrediction = 0.0f;
+			}*/
 
-		// 
-		LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(MovementAnimationData.ActorControlRotation.Vector()) * LeanInAirCurve->GetFloatValue(MovementAnimationData.Velocity.Z), DeltaSeconds, 4.0f);
+			// 
+			LeanAmount = FMath::Vector2DInterpTo(LeanAmount, FVector2D(MovementAnimationData.ActorControlRotation.Vector()) * LeanInAirCurve->GetFloatValue(MovementAnimationData.Velocity.Z), DeltaSeconds, 4.0f);
 
-		// 
-		break;
+			// 
+			break;
 
 		// Do this functionality only while ragdolling
-	case EMovementState::Ragdoll:
+		case EMovementState::Ragdoll:
 
-		//// Update Ragdoll Values
-		// 
-		//FlailRate = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1000.0f), FVector2D(0.0f, 1.0f), GetSkelMeshComponent()->GetPhysicsLinearVelocity(FName(TEXT("root"))).Size());
-		//FlailRate = FMath::Clamp(GetSkelMeshComponent()->GetPhysicsLinearVelocity(FName(TEXT("root"))).Size() * (1.0f / 1000.0f), 0.0f, 1.0f);
+			//// Update Ragdoll Values
+			// 
+			//FlailRate = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1000.0f), FVector2D(0.0f, 1.0f), GetSkelMeshComponent()->GetPhysicsLinearVelocity(FName(TEXT("root"))).Size());
+			//FlailRate = FMath::Clamp(GetSkelMeshComponent()->GetPhysicsLinearVelocity(FName(TEXT("root"))).Size() * (1.0f / 1000.0f), 0.0f, 1.0f);
 
-		// 
-		break;
+			// 
+			break;
 
 		// Else, do nothing
-	default:
-		break;
+		default:
+			break;
 	}
 
 
@@ -620,8 +579,8 @@ void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds) {
 
 	//// Finally, set all relevant state transition variables for quick pathing at the cost of a bit of memory
 	// 
-	const FAnimInstanceProxy& LocalAnimInstanceProxy = GetProxyOnAnyThread<FAnimInstanceProxy>();
-	const FAnimNode_StateMachine* LocalStateMachine;
+	const FAnimInstanceProxy & LocalAnimInstanceProxy = GetProxyOnAnyThread<FAnimInstanceProxy>();
+	const FAnimNode_StateMachine * LocalStateMachine;
 	int32 LocalStateMachineIndex;
 
 	// Collect all necessary state weights from the target state machine of "Main Grounded States"
@@ -751,20 +710,20 @@ void UBaseAnimInstance::TurnInPlace(const FRotator TargetRotation, const float P
 
 	//// Step 1: Set Turn Angle
 	// 
-	float TurnAngle = (TargetRotation - MovementAnimationData.ActorControlRotation).GetNormalized().Yaw;
+	const float TurnAngle = (TargetRotation - MovementAnimationData.ActorControlRotation).GetNormalized().Yaw;
 
 	// 
 	UAnimSequenceBase * Animation;
 	float InvertedAnimatedAngle;
 
 	// If we are standing, then this is true, else it is false
-	bool ScaleTurnAngle = (MovementAnimationData.Stance == EStance::Standing);
+	const bool ScaleTurnAngle = (MovementAnimationData.Stance == EStance::Standing);
 
 	// If true, we want the (N) variant, else we want the (CLF) variant
-	FName SlotName = FName(ScaleTurnAngle ? TEXT("(N) Turn/Rotate") : TEXT("(CLF) Turn/Rotate"));
+	const FName SlotName = FName(ScaleTurnAngle ? TEXT("(N) Turn/Rotate") : TEXT("(CLF) Turn/Rotate"));
 
 	// Play rate is currently fixed at 1.2f, with the scale multiplied in now
-	float ScaledPlayRate = (1.2f * PlayRateScale);
+	const float ScaledPlayRate = (1.2f * PlayRateScale);
 
 	//// Step 2: Choose Turn Asset based on the Turn Angle and Stance
 	// 

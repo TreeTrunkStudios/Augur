@@ -178,6 +178,9 @@ protected:
 	FCollisionShape FloorCollisionShape;
 
 	// 
+	TArray<FOverlapResult> WallOverlapCollisions;
+
+	// 
 	FQuat CurrentCollisionRotation;
 
 	// 
@@ -344,7 +347,7 @@ protected:
 	FORCEINLINE virtual void CalculatePreviousFloor();
 
 	// 
-	FORCEINLINE virtual void CalculateCollisionOffset();
+	FORCEINLINE virtual void CalculateCollisionOffset(FVector & EditableVelocity);
 
 	// 
 	FORCEINLINE virtual void CalculateGroundedMovement();

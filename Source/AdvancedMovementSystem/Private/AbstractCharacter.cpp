@@ -337,7 +337,11 @@ void AAbstractCharacter::GetMovementAnimationData_Implementation(FMovementAnimat
 
 
 // 
-void AAbstractCharacter::TransferCharacterData(FArchive & GivenSaveOrLoadSystem) {}
+void AAbstractCharacter::TransferCharacterData(FArchive & GivenSaveOrLoadSystem) {
+
+	// TODO: Implement save game system to save all of the relevant information, such as locations (relative and world), rotations (relative and world), etc.
+	// 
+}
 
 
 // 
@@ -388,7 +392,7 @@ void AAbstractCharacter::CalculatePreviousFloor() {
 #ifdef SHOULD_HAVE_ACCURATE_PREVIOUS_FLOOR_TRANSFORMS
 
 		// Simply subtract the previous floor's previous location from its current location to get the difference in movement 
-		FVector DeltaLocation = (FTransform::SubtractTranslations(CurrentPreviousFloorTransform, PreviousFloorPreviousTransform));
+		const FVector DeltaLocation = (FTransform::SubtractTranslations(CurrentPreviousFloorTransform, PreviousFloorPreviousTransform));
 
 		// Collision check to ensure that there is nothing between your old position and the new position
 		//     (e.g. standing still on a moving block that moves you into a non-moving wall)
@@ -405,7 +409,7 @@ void AAbstractCharacter::CalculatePreviousFloor() {
 	if (FTransform::AreRotationsEqual(PreviousFloorPreviousTransform, CurrentPreviousFloorTransform) == false) {
 
 		// Locally store the rotational difference between the current and previous rotations
-		FQuat DeltaRotation = (CurrentPreviousFloorTransform.GetRotation() - PreviousFloorPreviousTransform.GetRotation());
+		const FQuat DeltaRotation = (CurrentPreviousFloorTransform.GetRotation() - PreviousFloorPreviousTransform.GetRotation());
 
 		// TODO: Convert rotational differences into positional differences
 		// 
@@ -415,7 +419,7 @@ void AAbstractCharacter::CalculatePreviousFloor() {
 	if (FTransform::AreScale3DsEqual(PreviousFloorPreviousTransform, CurrentPreviousFloorTransform) == false) {
 
 		// Locally store the scale difference between the current and previous scales
-		FVector DeltaScale = (CurrentPreviousFloorTransform.GetScale3D() - PreviousFloorPreviousTransform.GetScale3D());
+		const FVector DeltaScale = (CurrentPreviousFloorTransform.GetScale3D() - PreviousFloorPreviousTransform.GetScale3D());
 
 		// TODO: Convert scale differences into positional differences
 		// 
@@ -439,7 +443,7 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 
 	// TODO: Potentially take into account previous velocity and/or gravity
 	// Locally store our current actor's world position plus any previous movement offsets that should be taken into account such as previous floor movement
-	FVector CurrentWorldPosition = (GetActorLocation() + CalculatedMovementOffset);
+	const FVector CurrentWorldPosition = (GetActorLocation() + CalculatedMovementOffset);
 
 
 	//// Velocity and acceleration calculations
@@ -454,7 +458,7 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	MaxAcceleration = FMath::FInterpTo(MaxAcceleration, ((TargetVelocity.SizeSquared() >= PreviousVelocity.SizeSquared()) ? CurrentMovementData.MaxAcceleration[(int32)CurrentGait] : CurrentMovementData.MaxDeceleration[(int32)CurrentGait]), CurrentDeltaTime, 10.0f);
 
 	// If our current acceleration is greater than our max acceleration, then...
-	float CurrentAccelerationSizeSquared = Acceleration.SizeSquared();
+	const float CurrentAccelerationSizeSquared = Acceleration.SizeSquared();
 	if (CurrentAccelerationSizeSquared > FMath::Square(MaxAcceleration)) {
 
 		// Clamp our current acceleration by our max acceleration to ensure that we are not speeding up or rotating too quickly
@@ -466,7 +470,7 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 
 
 	// Now we do the WallCheck to ensure that we are not walking through objects
-	CalculateCollisionOffset();
+	CalculateCollisionOffset(TargetVelocity);
 	
 
 	//// Now we do the FloorCheck to ensure that we are not walking over large openings (rather than changing the collision shape twice, we just make a new temporary shape instead, since it is a one-off)
@@ -563,14 +567,8 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	}
 	else {
 		if (DesiredGait == EGaitState::Running) {
-
-			// Can Sprint
-			bool CanSprint = (HasMovementInput && (RotationState == ERotationState::VelocityDirection ||
-				((RotationState == ERotationState::LookingDirection && (FMath::Abs((Acceleration.ToOrientationRotator() -
-					RotatorComponent->GetRelativeRotation()).GetNormalized().Yaw) < 50.0f)))) && (MovementInputAmount > 0.9f));
-			AllowedGait = (CanSprint ?
-				EGaitState::Running : EGaitState::FastWalking);
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Cyan, FString(TEXT("CanSprint: ")) + FString(CanSprint ? TEXT("true") : TEXT("false")));
+			const bool CanSprint = ((MovementInputAmount > 0.9f) && (RotationState == ERotationState::VelocityDirection || (RotationState == ERotationState::LookingDirection && (FMath::Abs((CharacterSkeleton->GetRelativeRotation() - LastMovementInputRotation).GetNormalized().Yaw) < 50.0f))));
+			AllowedGait = (CanSprint ? EGaitState::Running : EGaitState::FastWalking);
 		}
 		else {
 			AllowedGait = DesiredGait;
@@ -578,12 +576,12 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	}
 
 	// Determine the actual gait
-	//if (Speed >= (((CurrentMovementData.MaxRunningSpeed - CurrentMovementData.MaxFastWalkSpeed) * 0.5f) + CurrentMovementData.MaxFastWalkSpeed)) ActualGait = EGaitState::Running;
-	//else if (Speed >= (((CurrentMovementData.MaxFastWalkSpeed - CurrentMovementData.MaxWalkSpeed) * 0.5f) + CurrentMovementData.MaxWalkSpeed)) ActualGait = EGaitState::FastWalking;
-	//else ActualGait = AllowedGait;
-	if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Running)] + 10.0f)) ActualGait = EGaitState::Running;
-	else if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)] + 10.0f)) ActualGait = EGaitState::FastWalking;
-	else ActualGait = AllowedGait;
+	if (Speed >= (((CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Running)] - CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)]) * 0.25f) + CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)])) ActualGait = EGaitState::Running;
+	else if (Speed >= (((CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)] - CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Walking)]) * 0.25f) + CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Walking)])) ActualGait = (AllowedGait == EGaitState::Running ? EGaitState::Running : EGaitState::FastWalking);
+	else ActualGait = ActualGait = EGaitState::Walking;
+	//if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)] + 10.0f)) ActualGait = EGaitState::Running;
+	//else if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Walking)] + 10.0f)) ActualGait = (AllowedGait == EGaitState::Running ? EGaitState::Running : EGaitState::FastWalking);
+	//else ActualGait = EGaitState::Walking;
 
 	/*
 	if (Speed >= (CurrentMovementData.MaxFastWalkSpeed + 10.0f)) {
@@ -662,14 +660,14 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 		if ((CurrentViewMode == EViewMode::FirstPerson) || (RotationState == ERotationState::Aiming)) {
 
 			// Limit Rotation
-			double YawDelta = (RotatorComponent->GetRelativeRotation() - CharacterSkeleton->GetRelativeRotation()).GetNormalized().Yaw;
+			const double YawDelta = (RotatorComponent->GetRelativeRotation() - CharacterSkeleton->GetRelativeRotation()).GetNormalized().Yaw;
 			if ((YawDelta < -100.0f) || (YawDelta > 100.0f)) {
 				SmoothCharacterRotation(FRotator(0.0, RotatorComponent->GetRelativeRotation().Yaw - ((YawDelta > 0.0f) ? 100.0f : -100.0f), 0.0f), 0.0f, 20.0f, CurrentDeltaTime);
 			}
 		}
 
 		// Apply the RotationAmount curve from Turn In Place animations (fixed at an animated framerate of 30 fps)
-		float AnimCurveValue = (IsValid(CharacterSkeleton->GetAnimInstance()) ? CharacterSkeleton->GetAnimInstance()->GetCurveValue(FName(TEXT("RotationAmount"))) : 0.0f);
+		const float AnimCurveValue = (IsValid(CharacterSkeleton->GetAnimInstance()) ? CharacterSkeleton->GetAnimInstance()->GetCurveValue(FName(TEXT("RotationAmount"))) : 0.0f);
 		if (FMath::Abs(AnimCurveValue) > 0.001f) {
 			CharacterSkeleton->AddRelativeRotation(FRotator(0.0f, (AnimCurveValue * CurrentDeltaTime * 30.0f), 0.0f));
 			TargetRotation = CharacterSkeleton->GetRelativeRotation();
@@ -685,7 +683,7 @@ void AAbstractCharacter::CalculateAirborneMovement() {
 	CurrentVelocity += (CurrentGravityOffset * InverseDeltaTime);
 
 	// Locally store our current position plus our current velocity (since we are falling in a set direction)
-	FVector LocalActorPosition = (this->GetActorLocation());// +CalculatedMovementOffset);
+	const FVector LocalActorPosition = (this->GetActorLocation());// +CalculatedMovementOffset);
 
 	// If our collision trace hits something, then we are to assume we are now grounded, so...
 	if (FPhysicsInterface::GeomSweepSingle(GetWorld(), FloorCollisionShape, CurrentCollisionRotation, CollisionResult, LocalActorPosition, LocalActorPosition + (CurrentVelocity * CurrentDeltaTime), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
@@ -710,15 +708,8 @@ void AAbstractCharacter::CalculateAirborneMovement() {
 	CalculatedMovementOffset += (CollisionResult.TraceEnd - CollisionResult.TraceStart);
 	
 
-	//// TODO: Potentially fix this silliness by making CalculateCollisionOffset take a reference to the FVector that we actually want to change
-	// Update our target velocity to be our current velocity, as target velocity is what our wall collision system tests against
-	TargetVelocity = CurrentVelocity;
-
-	// Now, check for wall collisions and update our target velocity accordingly
-	CalculateCollisionOffset();
-
-	// Now that our wall check has potentially updated our current velocity, we need to update it here now
-	CurrentVelocity = TargetVelocity;
+	// Now, check for wall collisions and update our current velocity accordingly
+	CalculateCollisionOffset(CurrentVelocity);
 
 
 	// Set our speed to be the size of our current velocity
@@ -802,37 +793,54 @@ void AAbstractCharacter::CalculateFloatingMovement() {
 
 
 // 
-void AAbstractCharacter::CalculateCollisionOffset() {
+void AAbstractCharacter::CalculateCollisionOffset(FVector & EditableVelocity) {
 
-	// 
-	/*if (FPhysicsInterface::GeomSweepSingle(GetWorld(), CollisionShape, CurrentCollisionRotation, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + (TargetVelocity * CurrentDeltaTime), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
+	// First we do a geometry sweep to see if there is a wall between where we are and where we want to be, and, if so, then...
+	if (FPhysicsInterface::GeomSweepSingle(GetWorld(), WallCollisionShape, CurrentCollisionRotation, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + (EditableVelocity * CurrentDeltaTime), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
 
-		//
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Red, FString(TEXT("We have collided with a wall! Oh no!")));
+		// If there is something that completely blocks our path, then...
+		if (CollisionResult.bStartPenetrating || FMath::IsNearlyEqualByULP(CollisionResult.Time, 0.0f) == false) {
 
+			// If our path is completely blocked, then project our wanted velocity onto the plane made by the wall's impact normal (minus z)
+			EditableVelocity = FVector::VectorPlaneProject(EditableVelocity, CollisionResult.ImpactNormal);
 
-		//
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Blue, FString(TEXT("TargetVelocity:")) + TargetVelocity.ToString());
+			// Next, we do a secondary check to ensure that, if there's a new wall for our new velocity, that we do not clip into it
+			if (FPhysicsInterface::GeomSweepSingle(GetWorld(), WallCollisionShape, CurrentCollisionRotation, CollisionResult, CurrentCollisionWorldPosition, CurrentCollisionWorldPosition + (EditableVelocity * CurrentDeltaTime), ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam)) {
+				EditableVelocity *= (CollisionResult.Time - 0.01f /*To avoid accidentally clipping into walls*/);
+			}
+		}
 
-		//
-		TargetVelocity = (((FVector(CollisionResult.ImpactPoint.X, CollisionResult.ImpactPoint.Y, CollisionResult.Location.Z) + (TargetVelocity.GetSafeNormal() * (-1.1 * CurrentRadius))) - CurrentCollisionWorldPosition) * InverseDeltaTime);
+		// Else, simply scale back our velocity and be done
+		else EditableVelocity *= (CollisionResult.Time - 0.01f /*To avoid accidentally clipping into walls*/);
+	}
 
-		//
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, CurrentDeltaTime, FColor::Silver, FString(TEXT("TargetVelocity:")) + TargetVelocity.ToString());
+	// Small performance optimization to just add the new editable velocity into the current collision world position rather than recalculating that up to three or more times
+	CurrentCollisionWorldPosition += (EditableVelocity * CurrentDeltaTime);
 
+	// Ensure that the current overlapping collisions array is empty with a slack size of two
+	WallOverlapCollisions.Empty(2); /*Assume that, most likely, there will never be more than two wall-like objects moving at you at a time*/
 
-		// Could also be potentially replaced with TargetVelocity *= CollisionResult.Time;
-		//TargetVelocity = ((CollisionResult.Location - CollisionResult.TraceStart) * InverseDeltaTime);
+	// Test for if there are any wall-like objects moving at you that should cause your position to displace
+	if (FPhysicsInterface::GeomOverlapMulti(GetWorld(), WallCollisionShape, CurrentCollisionWorldPosition, CurrentCollisionRotation, WallOverlapCollisions, ECollisionChannel::ECC_Visibility, CollisionQueryParameters, FCollisionResponseParams::DefaultResponseParam, FCollisionObjectQueryParams{FCollisionObjectQueryParams::InitType::AllDynamicObjects})) {
 
-		//
-		//TargetVelocity *= CollisionResult.Time;
+		// Loop through all currently overlapping objects, and...
+		for (const FOverlapResult & CurrentResult : WallOverlapCollisions) {
 
-		//
-		//FMTDResult LocalPenetrationResult;
-		//if (CollisionResult.Component->ComputePenetration(LocalPenetrationResult, CollisionShape, CollisionResult.Location, CurrentCollisionRotation)) {
-		//	TargetVelocity = (((CollisionResult.Location + (LocalPenetrationResult.Direction * LocalPenetrationResult.Distance)) - CurrentCollisionWorldPosition) * InverseDeltaTime);
-		//}
-	}*/
+			// Check if they are still overlapping and, if so, collect their penetration details and...
+			FMTDResult LocalResult;
+			if (CurrentResult.Component->ComputePenetration(LocalResult, WallCollisionShape, CurrentCollisionWorldPosition, CurrentCollisionRotation)) {
+
+				// Locally store the distance vector required to move us out of the currently overlapping object
+				const FVector LocalVector = (LocalResult.Direction * LocalResult.Distance);
+
+				// Instead of making our velocity change from the movement, we are just going to apply the movement change directly so that our character doesn't do dumb looking things (video game logic)
+				CalculatedMovementOffset += LocalVector;
+
+				// Finally, also apply the move to our current collision world position, as we have officially moved due to this object
+				CurrentCollisionWorldPosition += LocalVector;
+			}
+		}
+	}
 }
 
 
@@ -868,6 +876,5 @@ void AAbstractCharacter::DrawDebugShapes() {
 	if (!CalculatedMovementOffset.IsNearlyZero()) DebugVelocityArrow->SetWorldRotation(CalculatedMovementOffset.ToOrientationRotator());
 
 	// Draw a debug arrow to visualize what our wanted direction is
-	FVector LocalVector = (MovementInput * (CurrentMovementData.MaxSpeed[static_cast<uint8>(AllowedGait)] * CurrentDeltaTime));
-	DebugMovementArrow->SetWorldRotation(LocalVector.ToOrientationRotator());
+	DebugMovementArrow->SetWorldRotation((MovementInput * (CurrentMovementData.MaxSpeed[static_cast<uint8>(AllowedGait)] * CurrentDeltaTime)).ToOrientationRotator());
 }

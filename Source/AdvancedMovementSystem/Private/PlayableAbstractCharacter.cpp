@@ -57,8 +57,8 @@ void APlayableAbstractCharacter::Tick(float DeltaTime) {
 	// Call parent class' tick functionality first
 	Super::Tick(DeltaTime);
 
-	// 
-	FVector HeadSocketLocation = CharacterSkeleton->GetSocketLocation(FName(TEXT("Head")));
+	// Locally store our target socket location, as it would get expensive otherwise
+	const FVector HeadSocketLocation = CharacterSkeleton->GetSocketLocation(FName(TEXT("Head")));
 
 	// Interpolate our rotator's world location to follow the skeletal mesh's head smoothly
 	RotatorComponent->SetWorldLocation(FMath::VInterpTo(RotatorComponent->GetComponentLocation(), HeadSocketLocation, DeltaTime, 5.0f));
@@ -67,7 +67,7 @@ void APlayableAbstractCharacter::Tick(float DeltaTime) {
 	if (TargetRelativeOffset.Equals(PreviousRelativeOffset) == false) {
 
 		// Calculate our local delta this frame
-		FVector LocalDelta = (FMath::VInterpTo(PreviousRelativeOffset, TargetRelativeOffset, DeltaTime, 5.0f) - PreviousRelativeOffset);
+		const FVector LocalDelta = (FMath::VInterpTo(PreviousRelativeOffset, TargetRelativeOffset, DeltaTime, 5.0f) - PreviousRelativeOffset);
 
 		// Add the local delta onto the player camera
 		PlayerCamera->AddRelativeLocation(LocalDelta);
@@ -76,14 +76,12 @@ void APlayableAbstractCharacter::Tick(float DeltaTime) {
 		PreviousRelativeOffset += LocalDelta;
 	}
 
-	// 
-	if (CurrentViewMode == EViewMode::ThirdPerson) {
-		FHitResult LocalCameraCheck;
-		if (FPhysicsInterface::GeomSweepSingle(GetWorld(), FCollisionShape::MakeSphere(10.0f), FQuat::Identity, LocalCameraCheck, HeadSocketLocation, HeadSocketLocation + RotatorComponent->GetComponentQuat().RotateVector(PlayerCamera->GetRelativeLocation()), ECollisionChannel::ECC_Visibility, FCollisionQueryParams{ NAME_None, false, this }, FCollisionResponseParams::DefaultResponseParam)) {
-			FVector LocalVector = RotatorComponent->GetComponentQuat().UnrotateVector(LocalCameraCheck.Location - LocalCameraCheck.TraceEnd);
-			PlayerCamera->AddRelativeLocation(LocalVector);
-			PreviousRelativeOffset += LocalVector;
-		}
+	// Check for if there is something between the head socket and the target camera location and, if so, then adjust our relative position accordingly
+	FHitResult LocalCameraCheck;
+	if (FPhysicsInterface::GeomSweepSingle(GetWorld(), FCollisionShape::MakeSphere(10.0f), FQuat::Identity, LocalCameraCheck, HeadSocketLocation, HeadSocketLocation + RotatorComponent->GetComponentQuat().RotateVector(PlayerCamera->GetRelativeLocation()), ECollisionChannel::ECC_Visibility, FCollisionQueryParams{ NAME_None, false, this }, FCollisionResponseParams::DefaultResponseParam)) {
+		const FVector LocalVector = RotatorComponent->GetComponentQuat().UnrotateVector(LocalCameraCheck.Location - LocalCameraCheck.TraceEnd);
+		PlayerCamera->AddRelativeLocation(LocalVector);
+		PreviousRelativeOffset += LocalVector;
 	}
 }
 
@@ -145,15 +143,16 @@ void APlayableAbstractCharacter::HandleLookingInput(const FInputActionInstance &
 	this->RotatorComponent->AddRelativeRotation(FRotator(0.0, LookingInputVector2D.X, 0.0));
 
 	// Locally store the previous relative offset that the camera was placed into
-	FVector LocalRelativeOffset = ((CurrentViewMode == EViewMode::ThirdPerson) ? PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) : FVector::ZeroVector);
+	const FVector LocalRelativeOffset = ((CurrentViewMode == EViewMode::ThirdPerson) ? PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) : FVector::ZeroVector);
 
 	// Lastly, apply the given pitch to just the camera, as it is the only thing that needs to rotate on that axis, while also clamping the value (no rotating your head broken)
-	double LocalCameraPitch = (PlayerCamera->GetRelativeRotation().Pitch + LookingInputVector2D.Y);
+	const double LocalCameraPitch = (PlayerCamera->GetRelativeRotation().Pitch + LookingInputVector2D.Y);
 	this->PlayerCamera->SetRelativeRotation(FRotator(FMath::Clamp(LocalCameraPitch, MinCameraAngle, MaxCameraAngle), 0.0, 0.0));
 
 	// If third person, then add the change in relative position that should occur due to the change in rotation
-	if (CurrentViewMode == EViewMode::ThirdPerson)
+	if (CurrentViewMode == EViewMode::ThirdPerson) {
 		PlayerCamera->AddRelativeLocation(PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) - LocalRelativeOffset);
+	}
 }
 
 
@@ -167,12 +166,14 @@ void APlayableAbstractCharacter::ToggleCameraPerspective() {
 	PreviousRelativeOffset = FVector::ZeroVector;
 
 	// 
-	if (CurrentViewMode == EViewMode::ThirdPerson)
+	if (CurrentViewMode == EViewMode::ThirdPerson) {
 		TargetRelativeOffset = PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]);
+	}
 
 	// 
-	else
+	else {
 		TargetRelativeOffset = CameraOffset[(uint32)EViewMode::FirstPerson];
+	}
 
 	// 
 	TargetRelativeOffset -= PlayerCamera->GetRelativeLocation();
