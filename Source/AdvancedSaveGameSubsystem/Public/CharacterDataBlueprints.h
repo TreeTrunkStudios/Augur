@@ -28,13 +28,16 @@ public:
 
 	//
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	const TSet<FName> GetCharacterSavePropertyNames() const; // virtual const TSet<FName> GetCharacterSavePropertyNames_Implementation() const override;
+	const TSet<FName> GetCharacterSavePropertyNames() const;
+	// virtual const TSet<FName> GetCharacterSavePropertyNames_Implementation() const override;
 
 	// 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void PreCharacterSaveCallback(); // virtual void PreCharacterSaveCallback_Implementation() override;
+	void PreCharacterSaveCallback();
+	// virtual void PreCharacterSaveCallback_Implementation() override;
 
 	// 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void PostCharacterLoadCallback(); // virtual void PostCharacterLoadCallback_Implementation() override;
+	void PostCharacterLoadCallback();
+	// virtual void PostCharacterLoadCallback_Implementation() override;
 };

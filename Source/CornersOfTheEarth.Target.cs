@@ -11,5 +11,11 @@ public class CornersOfTheEarthTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.Add("AdvancedMovementSystem");
+		ExtraModuleNames.Add("AdvancedSaveGameSubsystem");
+		ExtraModuleNames.Add("AdvancedSubtitleSystem");
+		ExtraModuleNames.Add("EquippableSystem");
+		ExtraModuleNames.Add("GameSettingsSubsystem");
+		ExtraModuleNames.Add("GenericInventorySystem");
+		ExtraModuleNames.Add("SimpleGridBasedInventorySystem");
 	}
 }

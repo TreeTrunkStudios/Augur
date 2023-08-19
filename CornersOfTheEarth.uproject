@@ -35,6 +35,43 @@
 				"Engine",
 				"CoreUObject"
 			]
+		},
+		{
+			"Name": "EquippableSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject"
+			]
+		},
+		{
+			"Name": "AdvancedSubtitleSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject",
+				"UMG"
+			]
+		},
+		{
+			"Name": "GenericInventorySystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject"
+			]
+		},
+		{
+			"Name": "SimpleGridBasedInventorySystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject"
+			]
 		}
 	],
 	"Plugins": [
@@ -381,7 +418,6 @@
 		"Linux",
 		"Windows",
 		"LinuxArm64",
-		"Mac",
-		"HoloLens"
+		"Mac"
 	]
 }

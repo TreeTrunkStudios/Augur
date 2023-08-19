@@ -535,6 +535,7 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 
 	// 
 	else {
+		TargetVelocity.Z = (CurrentGravityOffset.Z * InverseDeltaTime);
 		CollisionResult.ImpactNormal.Z = 1.0;
 		CollisionResult.PhysMaterial = nullptr;
 		CurrentVelocity = (TargetVelocity * (GetSpeedMultipleByAngle() * GetSpeedMultipleByFloorType()));
@@ -576,7 +577,7 @@ void AAbstractCharacter::CalculateGroundedMovement() {
 	}
 
 	// Determine the actual gait
-	if (Speed >= (((CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Running)] - CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)]) * 0.25f) + CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)])) ActualGait = EGaitState::Running;
+	if (Speed >= (((CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Running)] - CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)]) * 0.5f) + CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)])) ActualGait = EGaitState::Running;
 	else if (Speed >= (((CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)] - CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Walking)]) * 0.25f) + CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::Walking)])) ActualGait = (AllowedGait == EGaitState::Running ? EGaitState::Running : EGaitState::FastWalking);
 	else ActualGait = ActualGait = EGaitState::Walking;
 	//if (Speed >= (CurrentMovementData.MaxSpeed[static_cast<uint8>(EGaitState::FastWalking)] + 10.0f)) ActualGait = EGaitState::Running;

@@ -13,7 +13,7 @@
 #include "ControllerDeadzoneAndInversion.generated.h"
 
 
-// Custom console variables for handling global gamepad functionality
+//// Custom console variables for handling global gamepad functionality
 // Console variable for storing the global controller state (none, left stick moves, or right stick moves)
 static TAutoConsoleVariable<int32> CVarControllerState(
     TEXT("controls.gamepad.ControllerState"),
