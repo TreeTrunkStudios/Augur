@@ -205,7 +205,7 @@ void USubtitleComponent::HandleVisualSubtitles(const FTraceHandle & GivenTraceHa
 	}
 
 	// Loop through all currently existing subtitle actor's, and...
-	for (int32 CurrentIndex = (VisualSubtitleActors.Num() - 1); CurrentIndex > 0; --CurrentIndex) {
+	for (int32 CurrentIndex = (VisualSubtitleActors.Num() - 1); CurrentIndex >= 0; --CurrentIndex) {
 
 		// If our current actor's index is zero, then it did not reoccur and needs to be removed now
 		if ((ReoccurringActorBitmask & (static_cast<BitMaskSize>(1) << CurrentIndex)) == 0) {

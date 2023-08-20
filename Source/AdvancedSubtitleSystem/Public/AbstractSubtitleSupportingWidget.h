@@ -14,6 +14,17 @@
 
 
 // 
+struct FAudioWidgetData {
+
+	// 
+	const FText Text;
+
+	// 
+	float Duration;
+};
+
+
+// 
 UCLASS()
 class ADVANCEDSUBTITLESYSTEM_API UAbstractSubtitleSupportingWidget : public UUserWidget {
 	GENERATED_BODY()
@@ -28,7 +39,7 @@ protected:
 
 	// 
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
-	class UTextBlock * EnvironmentalSubtitleTextBox = nullptr;
+	class UTextBlock * VisualSubtitleTextBox = nullptr;
 
 
 // 
@@ -44,9 +55,42 @@ public:
 
 	// 
 	UFUNCTION(BlueprintCallable)
-	virtual void AddUniqueVisualSubtitle(const AActor * GivenSubtitleActor, const EVisualSubtitleType GivenType, const FText Text, USoundBase * OptionalAudio);
+	void AddUniqueVisualSubtitle(const AActor * GivenSubtitleActor, const EVisualSubtitleType GivenType, const FText Text, USoundBase * OptionalAudio);
 
 	// 
 	UFUNCTION(BlueprintCallable)
-	virtual void RemoveUniqueVisualSubtitle(const AActor * GivenSubtitleActor);
+	void RemoveUniqueVisualSubtitle(const AActor * GivenSubtitleActor);
+
+// 
+protected:
+
+	// 
+	TMap<const int64, FAudioWidgetData> ActiveAudioSubtitleObjects;
+
+	//
+	TArray<int64> LocalAudioToRemove;
+
+	// 
+	virtual void NativeTick(const FGeometry & MyGeometry, float InDeltaTime) override;
+
+
+// 
+#if SUPPORT_VISUAL_SUBTITLES
+
+// 
+protected:
+
+	// 
+	TMap<const AActor*, FText> ActiveVisualSubtitles;
+
+
+// 
+protected:
+
+	// 
+	FORCEINLINE virtual void AddUniqueVisualSubtitle_Internal(const AActor * GivenSubtitleActor, const EVisualSubtitleType GivenType, const FText Text, USoundBase * OptionalAudio);
+
+	// 
+	FORCEINLINE virtual void RemoveUniqueVisualSubtitle_Internal(const AActor * GivenSubtitleActor);
+#endif
 };
