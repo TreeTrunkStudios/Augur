@@ -1,2 +1,2 @@
-# CornersOfTheEarth
- Call of Cthulhu inspired first person horror/shooter video game.
+# Augur
+ H.P. Lovecraft inspired first person survival horror video game with a unique horde mode based extra system
