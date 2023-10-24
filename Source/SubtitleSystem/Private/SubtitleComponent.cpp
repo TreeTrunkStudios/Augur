@@ -26,6 +26,9 @@ void USubtitleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// Tick the parent function of the current component
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	// 
+	if (GetOwner<APawn>()->IsLocallyControlled() == false) return;
+
 	//// TODO: Implement distance checking for subtitles to ensure that sounds the player cannot hear are not subtitled (might not be necessary)
 	// Locally store the global audio device manager singleton (static, as it only needs to happen once, since it's a singleton)
 	static FAudioDeviceManager * LocalAudioDeviceManager = FAudioDeviceManager::Get();
@@ -112,7 +115,7 @@ void USubtitleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 				// Start our next audio subtitle now for this wave instance (have to subtract our current playback time
 				//     from the end time to get the full wanted duration, using playback time instead of start time to
 				//     account for framerate misses, as framerates are never perfect and floats have rounding point errors)
-				StartAudioSubtitleDelegate.Broadcast(reinterpret_cast<int64>(CurrentWave), LocalSubtitle.Text, LocalSubtitle.EndTime - LocalSubtitleData.PlaybackTime);
+				StartAudioSubtitleDelegate.Execute(reinterpret_cast<int64>(CurrentWave), LocalSubtitle.Text, LocalSubtitle.EndTime - LocalSubtitleData.PlaybackTime);
 			}
 		}
 
@@ -132,7 +135,7 @@ void USubtitleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	for (const FWaveInstance * CurrentWaveToBeRemoved : NoLongerExistingWaveInstances) {
 
 		// Stop the current audio subtitle (optional function only really used if the player leaves the audio's influence ring)
-		StopAudioSubtitleDelegate.Broadcast(reinterpret_cast<int64>(CurrentWaveToBeRemoved));
+		StopAudioSubtitleDelegate.Execute(reinterpret_cast<int64>(CurrentWaveToBeRemoved));
 		
 		// Remove the wave instance from the map entirely, as it no longer should exist
 		CurrentlyExistingAudioSubtitles.Remove(CurrentWaveToBeRemoved);
@@ -154,10 +157,10 @@ void USubtitleComponent::BeginPlay() {
 	VisualSubtitleActors.Empty(VISUAL_SUBTITLE_STATIC_INDEX);
 
 	// 
-	VisualSubtitleDelegate = FTraceDelegate::CreateUObject(this, &USubtitleComponent::HandleVisualSubtitles);
+	//VisualSubtitleDelegate = FTraceDelegate::CreateUObject(this, &USubtitleComponent::HandleVisualSubtitles);
 
 	// Start our asynchronous infinite sweeping into the world in order to test for any visual subtitles
-	GetWorld()->AsyncSweepByChannel(VisualSubtitleTraceType, GetComponentLocation(), GetComponentLocation() + (GetComponentQuat().GetForwardVector() * 1000.0), FQuat::Identity, ECollisionChannel::ECC_Visibility, SubtitleCollision, FCollisionQueryParams{NAME_None, false, GetOwner()}, FCollisionResponseParams::DefaultResponseParam, &VisualSubtitleDelegate);
+	//GetWorld()->AsyncSweepByChannel(VisualSubtitleTraceType, GetComponentLocation(), GetComponentLocation() + (GetComponentQuat().GetForwardVector() * 1000.0), FQuat::Identity, ECollisionChannel::ECC_Visibility, SubtitleCollision, FCollisionQueryParams{NAME_None, false, GetOwner()}, FCollisionResponseParams::DefaultResponseParam, &VisualSubtitleDelegate);
 }
 
 
@@ -197,7 +200,7 @@ void USubtitleComponent::HandleVisualSubtitles(const FTraceHandle & GivenTraceHa
 			LocalSubtitleIndex = VisualSubtitleActors.Emplace(LocalActor);
 
 			// Start our new visual subtitles now, giving our owning widget the type and text of the subtitles
-			StartVisualSubtitleDelegate.Broadcast(LocalActor, ISubtitleInterface::Execute_GetType(LocalActor), ISubtitleInterface::Execute_GetText(LocalActor), ISubtitleInterface::Execute_GetOptionalAudio(LocalActor));
+			StartVisualSubtitleDelegate.Execute(LocalActor, ISubtitleInterface::Execute_GetType(LocalActor), ISubtitleInterface::Execute_GetText(LocalActor), ISubtitleInterface::Execute_GetOptionalAudio(LocalActor));
 		}
 
 		// Add our current actor's array index into the reoccurring actor bitmask, as we do not wish to remove it as of now
@@ -211,7 +214,7 @@ void USubtitleComponent::HandleVisualSubtitles(const FTraceHandle & GivenTraceHa
 		if ((ReoccurringActorBitmask & (static_cast<BitMaskSize>(1) << CurrentIndex)) == 0) {
 
 			// Stop this subtitle from further rendering
-			StopVisualSubtitleDelegate.Broadcast(VisualSubtitleActors[CurrentIndex]);
+			StopVisualSubtitleDelegate.Execute(VisualSubtitleActors[CurrentIndex]);
 
 			// Remove this subtitle from the current array of subtitles
 			VisualSubtitleActors.RemoveAt(CurrentIndex, 1, false);
@@ -219,6 +222,6 @@ void USubtitleComponent::HandleVisualSubtitles(const FTraceHandle & GivenTraceHa
 	}
 
 	// Finally, start another async trace to do it all over again
-	GetWorld()->AsyncSweepByChannel(VisualSubtitleTraceType, GetComponentLocation(), GetComponentLocation() + (GetComponentQuat().GetForwardVector() * 1000.0), FQuat::Identity, ECollisionChannel::ECC_Visibility, SubtitleCollision, FCollisionQueryParams{NAME_None, false, GetOwner()}, FCollisionResponseParams::DefaultResponseParam, &VisualSubtitleDelegate);
+	//GetWorld()->AsyncSweepByChannel(VisualSubtitleTraceType, GetComponentLocation(), GetComponentLocation() + (GetComponentQuat().GetForwardVector() * 1000.0), FQuat::Identity, ECollisionChannel::ECC_Visibility, SubtitleCollision, FCollisionQueryParams{NAME_None, false, GetOwner()}, FCollisionResponseParams::DefaultResponseParam, &VisualSubtitleDelegate);
 }
 #endif

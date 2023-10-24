@@ -15,7 +15,7 @@
 UControllerDisplayWidget::UControllerDisplayWidget(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
 
 	// 
-	DefaultStickMaterial = ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("/Script/Engine.Material'/Game/UserInterfaces/JoystickDeadzone.JoystickDeadzone'")).Object;
+	DefaultStickMaterial = ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("/Script/Engine.Material'/Game/UserInterfaces/SettingsMenu/JoystickDeadzone.JoystickDeadzone'")).Object;
 	ensureAlways(DefaultStickMaterial != nullptr);
 }
 

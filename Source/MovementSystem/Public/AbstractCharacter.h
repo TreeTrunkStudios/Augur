@@ -85,7 +85,7 @@ public:
 
 
 // 
-UCLASS(Abstract, Blueprintable)
+UCLASS()
 class MOVEMENTSYSTEM_API AAbstractCharacter : public APawn, public IMovementAnimationData, public ICharacterData {
 	GENERATED_BODY()
 
@@ -145,7 +145,7 @@ protected:
 
 	// 
 	UPROPERTY(EditAnywhere, meta=(ArraySizeEnum="EPhysicalSurfaceType"))
-	double FloorTypeSpeedMultiplier[static_cast<uint16>(EPhysicalSurfaceType::Num)];
+	double FloorTypeSpeedMultiplier[static_cast<uint8>(EPhysicalSurfaceType::Num)];
 
 
 // 
@@ -193,6 +193,7 @@ protected:
 	FRotator PreviousActorRotation = FRotator::ZeroRotator;
 
 	// In meters per second
+	UPROPERTY(Replicated)
 	FVector CurrentVelocity = FVector::ZeroVector;
 	FVector TargetVelocity = FVector::ZeroVector;
 
@@ -264,6 +265,9 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
 
 // 
 #ifdef UE_BUILD_DEBUG

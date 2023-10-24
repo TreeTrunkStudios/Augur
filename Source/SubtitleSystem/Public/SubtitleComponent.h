@@ -8,15 +8,15 @@
 // 
 #include "CoreMinimal.h"
 #include "SubtitleInterface.h"
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
 #include "SubtitleComponent.generated.h"
 
 
 // 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FStartAudioSubtitle, const int64, GivenAudioKey, const FText, Text, const float, Duration);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStopAudioSubtitle, const int64, GivenAudioKey);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FStartVisualSubtitle, const AActor*, GivenSubtitleActor, const EVisualSubtitleType, GivenType, const FText, Text, USoundBase*, OptionalAudio);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStopVisualSubtitle, const AActor*, GivenSubtitleActor);
+DECLARE_DELEGATE_ThreeParams(FStartAudioSubtitle, const int64, const FText, const float);
+DECLARE_DELEGATE_OneParam(FStopAudioSubtitle, const int64);
+DECLARE_DELEGATE_FourParams(FStartVisualSubtitle, const AActor*, const EVisualSubtitleType, const FText, USoundBase*);
+DECLARE_DELEGATE_OneParam(FStopVisualSubtitle, const AActor*);
 
 
 // A structure to handle all wanted subtitle data
@@ -49,7 +49,7 @@ struct FSubtitleData {
 
 // 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class SUBTITLESYSTEM_API USubtitleComponent final : public USceneComponent {
+class SUBTITLESYSTEM_API USubtitleComponent final : public UActorComponent {
 	GENERATED_BODY()
 
 
@@ -59,20 +59,12 @@ public:
 	// Sets default values for this component's properties
 	USubtitleComponent();
 
-	// 
-	UPROPERTY(BlueprintAssignable)
+	// Delegates to stop and start audio subtitles per sound required
 	FStartAudioSubtitle StartAudioSubtitleDelegate;
-
-	// 
-	UPROPERTY(BlueprintAssignable)
 	FStopAudioSubtitle StopAudioSubtitleDelegate;
 
-	// 
-	UPROPERTY(BlueprintAssignable)
+	// Delegates to stop and start visual subtitles per visual required
 	FStartVisualSubtitle StartVisualSubtitleDelegate;
-
-	// 
-	UPROPERTY(BlueprintAssignable)
 	FStopVisualSubtitle StopVisualSubtitleDelegate;
 
 
@@ -94,13 +86,17 @@ protected:
 	TArray<const AActor*> VisualSubtitleActors;
 
 	// Local trace delegate which is called (on the game thread) whenever the async geometry sweep finishes
-	FTraceDelegate VisualSubtitleDelegate;
+	//FTraceDelegate VisualSubtitleDelegate;
 
 	// A constant collision shape which is given to the geometry sweep for visual queries
-	const FCollisionShape SubtitleCollision = FCollisionShape::MakeSphere(10.0f);
+	//const FCollisionShape SubtitleCollision = FCollisionShape::MakeSphere(10.0f);
 
 	// Locally store our visual subtitle's trace type as a static const
-	static const EAsyncTraceType VisualSubtitleTraceType = VISUAL_SUBTITLES_TRACE_TYPE;
+	//static const EAsyncTraceType VisualSubtitleTraceType = VISUAL_SUBTITLES_TRACE_TYPE;
+
+
+// 
+public:
 
 	// The function that gets attached to the trace delegate which contains the actual functionality (not async)
 	void HandleVisualSubtitles(const FTraceHandle&, FTraceDatum&);

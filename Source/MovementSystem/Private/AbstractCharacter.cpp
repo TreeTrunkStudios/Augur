@@ -4,6 +4,10 @@
 
 // All required include files
 #include "AbstractCharacter.h"
+
+#include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
+
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -22,6 +26,10 @@ AAbstractCharacter::AAbstractCharacter() {
 	PrimaryActorTick.bRunOnAnyThread = false;
 	PrimaryActorTick.TickGroup = ETickingGroup::TG_PrePhysics;
 	PrimaryActorTick.EndTickGroup = ETickingGroup::TG_EndPhysics; //TG_StartPhysics
+
+	// 
+	SetReplicates(true);
+	SetReplicatingMovement(true);
 
 	// 
 	BaseComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BaseComponent"));
@@ -80,7 +88,7 @@ void AAbstractCharacter::BeginPlay() {
 	this->RootComponent->SetWorldRotation(FRotator(0.0));
 	
 	// 
-	DrawDebugShapes();
+	if (IsLocallyControlled() == true) DrawDebugShapes();
 }
 
 
@@ -89,6 +97,10 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 
 	// Call parent class' tick functionality first
 	Super::Tick(DeltaTime);
+
+	//// 
+	// Don't bother calculating anything unless we are on the server, as anywhere else is pointless
+	//if (GetLocalRole() != ROLE_Authority) return;
 
 	//// Set Essential Values
 	// Locally store the current delta time given by the Tick function for easier access within movement functions rather than passing it all
@@ -219,6 +231,17 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 
 	// Lastly, apply the wanted world transform as an offset and move along
 	this->RootComponent->SetWorldLocation(this->RootComponent->GetComponentTransform().GetTranslation() + CalculatedMovementOffset, false, nullptr, ETeleportType::None);
+}
+
+
+// 
+void AAbstractCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const {
+
+	// 
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 
+	DOREPLIFETIME(AAbstractCharacter, CurrentVelocity);
 }
 
 

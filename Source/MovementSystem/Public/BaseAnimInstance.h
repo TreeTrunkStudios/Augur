@@ -16,7 +16,7 @@
 
 
 // 
-UCLASS(Blueprintable)
+UCLASS()
 class MOVEMENTSYSTEM_API UBaseAnimInstance : public UAnimInstance {
 	GENERATED_BODY()
 

@@ -72,7 +72,8 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"CoreUObject",
-				"EnhancedInput"
+				"EnhancedInput",
+				"CommonInput"
 			]
 		},
 		{
@@ -82,6 +83,7 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"CoreUObject",
+				"UMG",
 				"EnhancedInput",
 				"MovementSystem",
 				"SubtitleSystem",
@@ -99,6 +101,10 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
+		},
+		{
+			"Name": "CommonUI",
+			"Enabled": true
 		},
 		{
 			"Name": "Paper2D",

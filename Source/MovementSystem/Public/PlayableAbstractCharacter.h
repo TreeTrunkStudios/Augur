@@ -14,7 +14,7 @@
 
 
 //
-UCLASS(Abstract, Blueprintable)
+UCLASS()
 class MOVEMENTSYSTEM_API APlayableAbstractCharacter : public AAbstractCharacter {
 	GENERATED_BODY()
 
