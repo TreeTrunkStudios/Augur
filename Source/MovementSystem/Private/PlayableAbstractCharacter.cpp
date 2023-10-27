@@ -4,6 +4,7 @@
 
 // All required include files
 #include "PlayableAbstractCharacter.h"
+#include "Net/UnrealNetwork.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -11,7 +12,7 @@
 
 
 // Sets default values
-APlayableAbstractCharacter::APlayableAbstractCharacter() {
+APlayableAbstractCharacter::APlayableAbstractCharacter() : Super() {
 
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -95,9 +96,6 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 	// Get the local player subsystem
 	UEnhancedInputLocalPlayerSubsystem * InputSubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(GetController())->GetLocalPlayer());
 
-	// 
-	ensureAlways(InputSubSystem != nullptr);
-
 	// Clear out existing mapping, and add our mapping
 	InputSubSystem->ClearAllMappings();
 	InputSubSystem->AddMappingContext(InputMapping, 0);
@@ -122,14 +120,60 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 
 
 // 
+void APlayableAbstractCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const {
+
+	// 
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 
+	DOREPLIFETIME(APlayableAbstractCharacter, ReplicatedTargetRotation);
+}
+
+
+// 
 void APlayableAbstractCharacter::HandleMovementInput(const FInputActionInstance & Instance) {
 
 	// ERROR: This class is made to function entirely WITHOUT a movement component, which causes errors. Apologies for the inconvienience!!
 	ensureAlways(!GetMovementComponent());
 
+	// 
+	//ensureAlways(Instance.GetValue().Get<FVector>().IsNearlyZero() == false);
+
+	// Locally store the current instance's movement input vector for ease of use
+	const FVector WantedMovementInput = RotatorComponent->GetComponentQuat().RotateVector(Instance.GetValue().Get<FVector>());
+
+	// 
+	MovementInput = WantedMovementInput;
+
+	// If the movement input has not changed, then do not waste the networking bandwidth "updating" it
+	//if (WantedMovementInput.Equals(PreviousMovementInput) == false) {
+
+		// Update the previous value to be the new value
+		//PreviousMovementInput = WantedMovementInput;
+
+		// Update the movement input vector globally, to the server, and then to the clients as well
+		//this->HandleMovementInput_Replicated(WantedMovementInput);
+
+		// 
+		//HandleMovementInput_Replicated_Implementation(WantedMovementInput);
+	//}
+
 	// Simply rotate our input vector by the rotation of the RotatorComponent in order to make the inputs follow the camera's Yaw rotation
 	//     NOTE: This is done this way in order to allow future implementations with a changing gravity axis, as well as to be more performant with vector intrensics
-	Internal_AddMovementInput(RotatorComponent->GetComponentQuat().RotateVector(Instance.GetValue().Get<FVector>()), false);
+	//Internal_AddMovementInput(RotatorComponent->GetComponentQuat().RotateVector(Instance.GetValue().Get<FVector>()), false);
+}
+
+
+// 
+void APlayableAbstractCharacter::HandleMovementInput_Replicated_Implementation(const FVector GivenMovementVector) {
+	
+	// 
+	//ensureAlways(GivenMovementVector.IsNearlyZero() == false);
+
+	// Simply rotate our input vector by the rotation of the RotatorComponent in order to make the inputs follow the camera's Yaw rotation
+	//     NOTE: This is done this way in order to allow future implementations with a changing gravity axis, as well as to be more performant with vector intrensics
+	//Internal_AddMovementInput(GivenMovementVector, false);
+	MovementInput = GivenMovementVector;
 }
 
 
@@ -139,20 +183,12 @@ void APlayableAbstractCharacter::HandleLookingInput(const FInputActionInstance &
 	// Locally store the looking input vector from the FInputActionInstance, rather than getting it two times per function call
 	const FVector2D LookingInputVector2D = Instance.GetValue().Get<FVector2D>();
 
-	// Apply the given yaw rotation to the actor as a whole, rotating us in world space
-	this->RotatorComponent->AddRelativeRotation(FRotator(0.0, LookingInputVector2D.X, 0.0));
-
-	// Locally store the previous relative offset that the camera was placed into
-	const FVector LocalRelativeOffset = ((CurrentViewMode == EViewMode::ThirdPerson) ? PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) : FVector::ZeroVector);
-
-	// Lastly, apply the given pitch to just the camera, as it is the only thing that needs to rotate on that axis, while also clamping the value (no rotating your head broken)
+	// 
 	const double LocalCameraPitch = (PlayerCamera->GetRelativeRotation().Pitch + LookingInputVector2D.Y);
-	this->PlayerCamera->SetRelativeRotation(FRotator(FMath::Clamp(LocalCameraPitch, MinCameraAngle, MaxCameraAngle), 0.0, 0.0));
+	ReplicatedTargetRotation = FRotator(FMath::Clamp(LocalCameraPitch, MinCameraAngle, MaxCameraAngle), LookingInputVector2D.X, 0.0);
 
-	// If third person, then add the change in relative position that should occur due to the change in rotation
-	if (CurrentViewMode == EViewMode::ThirdPerson) {
-		PlayerCamera->AddRelativeLocation(PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) - LocalRelativeOffset);
-	}
+	// 
+	this->ReplicateTargetRotationHandler();
 }
 
 

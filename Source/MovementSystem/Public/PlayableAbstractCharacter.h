@@ -71,12 +71,38 @@ protected:
 	FVector PreviousRelativeOffset = TargetRelativeOffset;
 
 	// 
+	FVector PreviousMovementInput = FVector::ZeroVector;
+
+	// 
 	UPROPERTY(EditAnywhere)
 	double MinCameraAngle = -90.0;
 	
 	// 
 	UPROPERTY(EditAnywhere)
 	double MaxCameraAngle = 90.0;
+
+	// 
+	UPROPERTY(Replicated, ReplicatedUsing="ReplicateTargetRotationHandler")
+	FRotator ReplicatedTargetRotation;
+
+	// 
+	UFUNCTION()
+	void ReplicateTargetRotationHandler() {
+
+		// Apply the given yaw rotation to the actor as a whole, rotating us in world space
+		this->RotatorComponent->AddRelativeRotation(FRotator(0.0, ReplicatedTargetRotation.Yaw, 0.0));
+
+		// Locally store the previous relative offset that the camera was placed into
+		const FVector LocalRelativeOffset = ((CurrentViewMode == EViewMode::ThirdPerson) ? PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) : FVector::ZeroVector);
+
+		// Lastly, apply the given pitch to just the camera, as it is the only thing that needs to rotate on that axis, while also clamping the value (no rotating your head broken)
+		this->PlayerCamera->SetRelativeRotation(FRotator(ReplicatedTargetRotation.Pitch, 0.0, 0.0));
+
+		// If third person, then add the change in relative position that should occur due to the change in rotation
+		if (CurrentViewMode == EViewMode::ThirdPerson) {
+			PlayerCamera->AddRelativeLocation(PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) - LocalRelativeOffset);
+		}
+	}
 
 
 // 
@@ -102,9 +128,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent * PlayerInputComponent) override;
 
+	// 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
+
 
 // Input handling protected functions
 protected:
+
+	// 
+	UFUNCTION(Server, Reliable)
+	virtual void HandleMovementInput_Replicated(const FVector GivenMovementVector);
 
 	// 
 	virtual void HandleMovementInput(const FInputActionInstance & Instance);

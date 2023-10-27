@@ -29,6 +29,50 @@ static const double LARGEST_SLOPE_ANGLE = FMath::Cos(FMath::DegreesToRadians(48.
 
 
 // 
+USTRUCT()
+struct FReplicatedMovementData {
+	GENERATED_BODY()
+
+// 
+public:
+
+	// 
+	UPROPERTY()
+	FVector_NetQuantize TargetLocation;
+
+	/*
+	// 
+	UPROPERTY()
+	FQuat TargetCollisionRotation;
+
+	// 
+	UPROPERTY()
+	float TargetSpeed;
+
+	// 
+	UPROPERTY()
+	float TargetHalfHeight;
+
+	// 
+	UPROPERTY()
+	float TargetRadius;
+
+	// 
+	UPROPERTY()
+	float TargetMaxStepHeight;
+
+	// 
+	UPROPERTY()
+	EGaitState TargetGaitState;
+
+	//
+	UPROPERTY()
+	EStance TargetStance;
+	*/
+};
+
+
+// 
 USTRUCT(BlueprintType)
 struct FMovementData {
 	GENERATED_BODY()
@@ -160,6 +204,23 @@ protected:
 	// 
 	FVector CalculatedMovementOffset;
 
+	// 
+	UPROPERTY(Replicated, ReplicatedUsing="ReplicationTester")
+	FVector ReplicatedActorWorldLocation;
+
+	// 
+	UFUNCTION()
+	void ReplicationTester() {
+
+		// Only move the actor's location IFF it is an uncontrolled dummy on someone else's computer (not the sending client)
+		if (IsValid(this->GetController()) == false)
+			this->RootComponent->SetWorldLocation(ReplicatedActorWorldLocation, false, nullptr, ETeleportType::None);
+	}
+
+	// 
+	UFUNCTION(Server, Unreliable)
+	void UpdateServerWorldPosition(const FReplicatedMovementData NewReplicationData);
+
 	// Gravity as a offset distance (e.g. units are meters rather than being an acceleration of meters per second squared)
 	FVector CurrentGravityOffset;
 
@@ -193,7 +254,6 @@ protected:
 	FRotator PreviousActorRotation = FRotator::ZeroRotator;
 
 	// In meters per second
-	UPROPERTY(Replicated)
 	FVector CurrentVelocity = FVector::ZeroVector;
 	FVector TargetVelocity = FVector::ZeroVector;
 
@@ -267,7 +327,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
 
 // 
 #ifdef UE_BUILD_DEBUG

@@ -6,7 +6,7 @@
 
 
 // 
-APlayableCharacter::APlayableCharacter() {
+APlayableCharacter::APlayableCharacter() : Super() {
 	
 	// 
 	SubtitleComponent = CreateDefaultSubobject<USubtitleComponent>(TEXT("SubtitleComponent"));
