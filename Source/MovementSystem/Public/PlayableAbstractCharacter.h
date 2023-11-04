@@ -82,11 +82,11 @@ protected:
 	double MaxCameraAngle = 90.0;
 
 	// 
-	UPROPERTY(Replicated, ReplicatedUsing="ReplicateTargetRotationHandler")
-	FRotator ReplicatedTargetRotation;
+	//UPROPERTY(Replicated, ReplicatedUsing="ReplicateTargetRotationHandler")
+	//FRotator ReplicatedTargetRotation;
 
 	// 
-	UFUNCTION()
+	/*UFUNCTION()
 	void ReplicateTargetRotationHandler() {
 
 		// Apply the given yaw rotation to the actor as a whole, rotating us in world space
@@ -102,7 +102,7 @@ protected:
 		if (CurrentViewMode == EViewMode::ThirdPerson) {
 			PlayerCamera->AddRelativeLocation(PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) - LocalRelativeOffset);
 		}
-	}
+	}*/
 
 
 // 
@@ -129,15 +129,21 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent * PlayerInputComponent) override;
 
 	// 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
+	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
 
 
 // Input handling protected functions
 protected:
 
 	// 
-	UFUNCTION(Server, Reliable)
-	virtual void HandleMovementInput_Replicated(const FVector GivenMovementVector);
+	//UFUNCTION(Server, Reliable)
+	//virtual void HandleMovementInput_Replicated(const FVector GivenMovementVector);
+
+	// 
+	virtual void ReplicateActorWorldRotation() override {
+		Super::ReplicateActorWorldRotation();
+		this->PlayerCamera->SetRelativeRotation(FRotator(ReplicatedRelativeRotation.Pitch, 0.0, 0.0));
+	}
 
 	// 
 	virtual void HandleMovementInput(const FInputActionInstance & Instance);

@@ -40,6 +40,10 @@ public:
 	UPROPERTY()
 	FVector_NetQuantize TargetLocation;
 
+	// 
+	UPROPERTY()
+	FRotator TargetRelativeRotation;
+
 	/*
 	// 
 	UPROPERTY()
@@ -204,23 +208,6 @@ protected:
 	// 
 	FVector CalculatedMovementOffset;
 
-	// 
-	UPROPERTY(Replicated, ReplicatedUsing="ReplicationTester")
-	FVector ReplicatedActorWorldLocation;
-
-	// 
-	UFUNCTION()
-	void ReplicationTester() {
-
-		// Only move the actor's location IFF it is an uncontrolled dummy on someone else's computer (not the sending client)
-		if (IsValid(this->GetController()) == false)
-			this->RootComponent->SetWorldLocation(ReplicatedActorWorldLocation, false, nullptr, ETeleportType::None);
-	}
-
-	// 
-	UFUNCTION(Server, Unreliable)
-	void UpdateServerWorldPosition(const FReplicatedMovementData NewReplicationData);
-
 	// Gravity as a offset distance (e.g. units are meters rather than being an acceleration of meters per second squared)
 	FVector CurrentGravityOffset;
 
@@ -304,6 +291,42 @@ protected:
 
 	// 
 	EViewMode CurrentViewMode = EViewMode::FirstPerson;
+
+
+// Section which handles all replicated variables for ease of access
+protected:
+
+	// This variable is utilized to replicate our target actor world location to all simulating clients
+	UPROPERTY(Replicated, ReplicatedUsing="ReplicateActorWorldLocation")
+	FVector ReplicatedActorWorldLocation;
+
+	// This variable is utilized to replicate our previous target actor world location to all clients
+	UPROPERTY(Replicated, ReplicatedUsing="ReplicateActorWorldLocation")
+	FVector OverrideReplicatedActorWorldLocation;
+
+	// 
+	UPROPERTY(Replicated, ReplicatedUsing="ReplicateActorWorldRotation")
+	FRotator ReplicatedRelativeRotation;
+
+
+// Section which handles all replicated functions for ease of access
+protected:
+
+	// 
+	UFUNCTION()
+	virtual void ReplicateActorWorldLocation() {
+		this->RootComponent->SetWorldLocation(ReplicatedActorWorldLocation, false, nullptr, ETeleportType::None);
+	}
+
+	// 
+	UFUNCTION()
+	virtual void ReplicateActorWorldRotation() {
+		this->RotatorComponent->SetRelativeRotation(FRotator(0.0, ReplicatedRelativeRotation.Yaw, 0.0));
+	}
+
+	// 
+	UFUNCTION(Server, Unreliable)
+	void SyncServerInformation(const FReplicatedMovementData NewReplicationData);
 
 
 // 

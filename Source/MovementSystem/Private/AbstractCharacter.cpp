@@ -17,7 +17,11 @@
 
 
 // 
-void AAbstractCharacter::UpdateServerWorldPosition_Implementation(const FReplicatedMovementData NewReplicationData) {
+void AAbstractCharacter::SyncServerInformation_Implementation(const FReplicatedMovementData NewReplicationData) {
+
+	//// Have the relative rotation of the current actor hitch a ride with the movement data in order to lessen the networking costs
+	// Update this actor's server's instance of the ReplicatedRelativeRotation in order to update all simulated clients
+	ReplicatedRelativeRotation = NewReplicationData.TargetRelativeRotation;
 
 	//// First, ensure that all of the values given from the client are valid for movement
 	// 
@@ -29,7 +33,12 @@ void AAbstractCharacter::UpdateServerWorldPosition_Implementation(const FReplica
 	//
 
 	// 
-	ReplicatedActorWorldLocation = NewReplicationData.TargetLocation;
+	if (true) {
+		ReplicatedActorWorldLocation = NewReplicationData.TargetLocation;
+	} else {
+		OverrideReplicatedActorWorldLocation = ReplicatedActorWorldLocation;
+	}
+	
 }
 
 
@@ -46,12 +55,12 @@ AAbstractCharacter::AAbstractCharacter() : Super() {
 
 	// 
 	SetReplicates(true);
-	//SetReplicatingMovement(true);
+	NetUpdateFrequency = 120.0f;
+	MinNetUpdateFrequency = 1.0f;
 
 	// 
 	BaseComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("BaseComponent"));
 	BaseComponent->SetRelativeTransform(FTransform::Identity);
-	//BaseComponent->SetIsReplicated(true);
 	this->SetRootComponent(BaseComponent);
 
 	// 
@@ -59,19 +68,16 @@ AAbstractCharacter::AAbstractCharacter() : Super() {
 	BaseModelComponent->SetupAttachment(BaseComponent);
 	BaseModelComponent->SetRelativeTransform(FTransform::Identity);
 	BaseModelComponent->SetRelativeRotation(FRotator(0.0, -90.0, 0.0));
-	//BaseModelComponent->SetIsReplicated(true);
 
 	// 
 	CharacterSkeleton = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterSkeleton"));
 	CharacterSkeleton->SetupAttachment(BaseModelComponent);
 	CharacterSkeleton->SetRelativeTransform(FTransform::Identity);
-	//CharacterSkeleton->SetIsReplicated(true);
 
 	// Create and initialize the player camera component
 	RotatorComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("RotatorComponent"));
 	RotatorComponent->SetupAttachment(BaseComponent);
 	RotatorComponent->SetRelativeTransform(FTransform::Identity);
-	//RotatorComponent->SetIsReplicated(true);
 
 	// 
 #ifdef UE_BUILD_DEBUG
@@ -109,7 +115,7 @@ void AAbstractCharacter::BeginPlay() {
 	this->RootComponent->SetWorldRotation(FRotator(0.0));
 	
 	// 
-	if (IsLocallyControlled() == true) DrawDebugShapes();
+	//if (IsLocallyControlled() == true) DrawDebugShapes();
 }
 
 
@@ -118,9 +124,6 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 
 	// Call parent class' tick functionality first
 	Super::Tick(DeltaTime);
-
-	// Don't bother calculating anything unless we are locally controlled (e.g. thrust the work onto the clients rather than the server)
-	if (IsLocallyControlled() == false) return;
 
 	//// Set Essential Values
 	// Locally store the current delta time given by the Tick function for easier access within movement functions rather than passing it all
@@ -246,21 +249,24 @@ void AAbstractCharacter::Tick(float DeltaTime) {
 	
 #ifdef UE_BUILD_DEBUG
 	// And, next, Draw Debug Shapes
-	DrawDebugShapes();
+	//DrawDebugShapes();
 #endif
 
 
 	// If there has been no calculated offset, then return and do nothing on the server
-	//if (CalculatedMovementOffset.IsNearlyZero()) return;
+	if (CalculatedMovementOffset.IsNearlyZero()) return;
 
 	// Locally, apply the wanted world transform as an offset
 	FVector TargetActorWorldPosition = (this->RootComponent->GetComponentTransform().GetTranslation() + CalculatedMovementOffset);
 	this->RootComponent->SetWorldLocation(TargetActorWorldPosition, false, nullptr, ETeleportType::None);
 
 	// Finally, pass the newly calculated world position to the server for checking and replication to the other clients
-	UpdateServerWorldPosition(FReplicatedMovementData{
-		TargetActorWorldPosition
-	});
+	if (IsLocallyControlled() == true) {
+		SyncServerInformation(FReplicatedMovementData{
+			TargetActorWorldPosition,
+			ReplicatedRelativeRotation
+		});
+	}
 }
 
 
@@ -271,7 +277,9 @@ void AAbstractCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 
-	DOREPLIFETIME(AAbstractCharacter, ReplicatedActorWorldLocation);
+	DOREPLIFETIME_CONDITION(AAbstractCharacter, ReplicatedActorWorldLocation, COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(AAbstractCharacter, ReplicatedRelativeRotation, COND_SimulatedOnly);
+	DOREPLIFETIME(AAbstractCharacter, OverrideReplicatedActorWorldLocation);
 }
 
 

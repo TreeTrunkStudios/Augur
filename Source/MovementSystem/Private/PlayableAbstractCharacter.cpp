@@ -120,14 +120,14 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 
 
 // 
-void APlayableAbstractCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const {
+/*void APlayableAbstractCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 
 	// 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 
 	DOREPLIFETIME(APlayableAbstractCharacter, ReplicatedTargetRotation);
-}
+}*/
 
 
 // 
@@ -165,7 +165,7 @@ void APlayableAbstractCharacter::HandleMovementInput(const FInputActionInstance 
 
 
 // 
-void APlayableAbstractCharacter::HandleMovementInput_Replicated_Implementation(const FVector GivenMovementVector) {
+/*void APlayableAbstractCharacter::HandleMovementInput_Replicated_Implementation(const FVector GivenMovementVector) {
 	
 	// 
 	//ensureAlways(GivenMovementVector.IsNearlyZero() == false);
@@ -174,7 +174,7 @@ void APlayableAbstractCharacter::HandleMovementInput_Replicated_Implementation(c
 	//     NOTE: This is done this way in order to allow future implementations with a changing gravity axis, as well as to be more performant with vector intrensics
 	//Internal_AddMovementInput(GivenMovementVector, false);
 	MovementInput = GivenMovementVector;
-}
+}*/
 
 
 // 
@@ -185,10 +185,24 @@ void APlayableAbstractCharacter::HandleLookingInput(const FInputActionInstance &
 
 	// 
 	const double LocalCameraPitch = (PlayerCamera->GetRelativeRotation().Pitch + LookingInputVector2D.Y);
-	ReplicatedTargetRotation = FRotator(FMath::Clamp(LocalCameraPitch, MinCameraAngle, MaxCameraAngle), LookingInputVector2D.X, 0.0);
+	FRotator ReplicatedTargetRotation = FRotator(FMath::Clamp(LocalCameraPitch, MinCameraAngle, MaxCameraAngle), LookingInputVector2D.X, 0.0);
+
+	// Apply the given yaw rotation to the actor as a whole, rotating us in world space
+	this->RotatorComponent->AddRelativeRotation(FRotator(0.0, ReplicatedTargetRotation.Yaw, 0.0));
+
+	// Locally store the previous relative offset that the camera was placed into
+	const FVector LocalRelativeOffset = ((CurrentViewMode == EViewMode::ThirdPerson) ? PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) : FVector::ZeroVector);
+
+	// Lastly, apply the given pitch to just the camera, as it is the only thing that needs to rotate on that axis, while also clamping the value (no rotating your head broken)
+	this->PlayerCamera->SetRelativeRotation(FRotator(ReplicatedTargetRotation.Pitch, 0.0, 0.0));
+
+	// If third person, then add the change in relative position that should occur due to the change in rotation
+	if (CurrentViewMode == EViewMode::ThirdPerson) {
+		PlayerCamera->AddRelativeLocation(PlayerCamera->GetRelativeRotation().RotateVector(CameraOffset[(uint32)EViewMode::ThirdPerson]) - LocalRelativeOffset);
+	}
 
 	// 
-	this->ReplicateTargetRotationHandler();
+	ReplicatedRelativeRotation = FRotator(this->PlayerCamera->GetRelativeRotation().Pitch, this->RotatorComponent->GetRelativeRotation().Yaw, 0.0);
 }
 
 
