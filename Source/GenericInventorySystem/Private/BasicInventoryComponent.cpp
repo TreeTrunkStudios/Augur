@@ -6,6 +6,8 @@
 #include "AbstractInventoryWidget.h"
 #include "Framework/Application/NavigationConfig.h"
 #include "Framework/Application/SlateApplication.h"
+#include "EnhancedInputModule.h"
+#include "EnhancedInputLibrary.h"
 
 
 // Sets default values for this component's properties
@@ -70,11 +72,11 @@ void UBasicInventoryComponent::BeginPlay() {
 	//// Take in an InputMapping and all of the necessary InputActions related to this and implement them, so that we
 	////     collect from the input mapping all of the input action's keys and give them to the navigation config
 	// Collect a reference to our current slate application's navigation configuration struct, and set it to our values
-	FNavigationConfig & Tester = FSlateApplication::Get().GetNavigationConfig().Get();
-	Tester.bTabNavigation = false;    // Disable tab functionality, as it is dumb
-	Tester.bAnalogNavigation = false; // Disable analog functionality, as it can be replicated through the key navigation system
-	Tester.bKeyNavigation = true;     // Enable key navigation, else this navigation system wouldn't be able to do anything
-	Tester.KeyEventRules.Empty(NavigationInputActions.Num()); // Empty out the array of events so that we can fill them custom-ly
+	FNavigationConfig & GlobalNavigationConfig = FSlateApplication::Get().GetNavigationConfig().Get();
+	GlobalNavigationConfig.bTabNavigation = false;    // Disable tab functionality, as it is dumb
+	GlobalNavigationConfig.bAnalogNavigation = false; // Disable analog functionality, as it can be replicated through the key navigation system
+	GlobalNavigationConfig.bKeyNavigation = true;     // Enable key navigation, else this navigation system wouldn't be able to do anything
+	GlobalNavigationConfig.KeyEventRules.Empty(NavigationInputActions.Num()); // Empty out the array of events so that we can fill them custom-ly
 
 	// If our input mapping and input actions are valid, then...
 	if (MenuInputMapping.IsNull() == false && NavigationInputActions.Num() > 0) {
@@ -86,7 +88,7 @@ void UBasicInventoryComponent::BeginPlay() {
 			if (const FInputActionToNavigation * CurrentConversion = NavigationInputActions.Find(FInputActionToNavigation{Element.Action})) {
 
 				// Add the current action key mapping's key as the current input action to navigation's navigation enum
-				Tester.KeyEventRules.Emplace(Element.Key, CurrentConversion->WantedNavigation);
+				GlobalNavigationConfig.KeyEventRules.Emplace(Element.Key, CurrentConversion->WantedNavigation);
 			}
 		}
 	}

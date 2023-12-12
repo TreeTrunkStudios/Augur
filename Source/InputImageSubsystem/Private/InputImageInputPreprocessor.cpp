@@ -54,7 +54,7 @@ bool FInputImageInputPreprocessor::HandleKeyDownEvent(FSlateApplication & SlateA
 // 
 bool FInputImageInputPreprocessor::HandleAnalogInputEvent(FSlateApplication & SlateApp, const FAnalogInputEvent & InAnalogInputEvent) {
 	const EBaseInputTypes InputType = GetInputType(InAnalogInputEvent.GetKey());
-	return IsRelevantInput(SlateApp, InAnalogInputEvent, InputType);
+	return !IsRelevantInput(SlateApp, InAnalogInputEvent, InputType);
 }
 
 

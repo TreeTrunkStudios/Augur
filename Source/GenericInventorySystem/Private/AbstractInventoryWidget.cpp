@@ -458,12 +458,8 @@ void UAbstractInventoryWidget::SetWidgetFocus(const TSharedPtr<SWidget> & GivenW
 	if (GivenWidget.IsValid()) {
 
 		// Collect our owning local player and set our user focus to be the given widget instead as a fallback
-		const bool LocalBool = FSlateApplication::Get().SetUserFocus(FGenericPlatformMisc::GetUserIndexForPlatformUser(GetPlayerContext().GetPlayerController()->GetPlatformUserId()), GivenWidget, EFocusCause::SetDirectly);
+		FSlateApplication::Get().SetUserFocus(FGenericPlatformMisc::GetUserIndexForPlatformUser(GetPlayerContext().GetPlayerController()->GetPlatformUserId()), GivenWidget, EFocusCause::SetDirectly);
 
-		//
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 30.0, LocalBool ? FColor::Green : FColor::Red, FString("Focus set ") + (LocalBool ? FString("SUCCESSFUL") : FString("UNSUCCESSFUL")));
-		
 		//GetOwningLocalPlayer()->GetSlateOperations().SetUserFocus(GivenWidget.ToSharedRef(), EFocusCause::SetDirectly);
 
 		// Set our keyboard focus to be the current widget, and, if NOT successful, then...
@@ -475,8 +471,4 @@ void UAbstractInventoryWidget::SetWidgetFocus(const TSharedPtr<SWidget> & GivenW
 			}
 		}*/
 	}
-
-	//
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 30.0, FColor::Purple, (CachedFocusedWidget.IsValid() ? CachedFocusedWidget->GetTypeAsString() : FString("nullptr")));
 }

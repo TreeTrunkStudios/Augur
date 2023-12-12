@@ -10,6 +10,7 @@
 #include "WeaponUpgradeTypes.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
+#include <Components/Image.h>
 #include "Components/UniformGridPanel.h"
 #include "AbstractUpgradeSpecWidget.generated.h"
 
@@ -25,6 +26,14 @@ protected:
 	//
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	UTextBlock * SpecNameText;
+
+	//
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	UTextBlock * SpecLevelText;
+
+	//
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	UImage * SpecImage;
 
 	//
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))

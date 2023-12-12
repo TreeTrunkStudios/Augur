@@ -3,6 +3,9 @@
 
 // 
 #include "PlayableCharacter.h"
+
+#include <Framework/Application/NavigationConfig.h>
+
 #include "EnhancedInputComponent.h"
 #include "InputImageSubsystem.h"
 
@@ -88,9 +91,7 @@ void APlayableCharacter::HandleInventoryUserInterface() {
 void APlayableCharacter::OpenInventoryUserInterface() const {
 
 	// 
-	APlayerController * CurrentPlayerController = Cast<APlayerController>(GetController());
-	//CurrentPlayerController->SetShowMouseCursor(true);
-	CurrentPlayerController->SetInputMode(FInputModeGameAndUI{});
+	Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI{});
 }
 
 
@@ -104,9 +105,7 @@ void APlayableCharacter::CloseInventoryUserInterface() const {
 	LocalEnhancedInputSubsystem->AddMappingContext(InputMapping, 10);
 
 	// 
-	APlayerController * CurrentPlayerController = Cast<APlayerController>(GetController());
-	//CurrentPlayerController->SetShowMouseCursor(false);
-	CurrentPlayerController->SetInputMode(FInputModeGameOnly{});
+	Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameOnly{});
 }
 
 

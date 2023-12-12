@@ -57,6 +57,12 @@ void UAbstractUpgradeSpecWidget::Setup(const EUpgradeTypes & CurrentUpgradeType,
 			break;
 	}
 
+	//
+	SpecImage->SetBrushFromSoftTexture(ConvertUpgradeTypesToIcons(CurrentUpgradeType));
+
+	//
+	SpecLevelText->SetText(FText::FormatOrdered(NSLOCTEXT("UpgradeMenuText", "PostOpFormatting", "{0} {1}"), NSLOCTEXT("UpgradeMenuText", "LevelTextPre", "Lv."), (CurrentUpgradeData.MaxUpgradeCount <= CurrentBitmaskValue ? NSLOCTEXT("UpgradeMenuText", "LevelTextMax", "Max") : FText::AsNumber(CurrentBitmaskValue))));
+
 	// Finally, set our specification's wanted value text based on the upgraded value and the current type
 	SpecValueText->SetText(ConvertUpgradeTypesToText(CurrentUpgradeType, CurrentUpgradedValue));
 }

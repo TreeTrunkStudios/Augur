@@ -17,6 +17,7 @@ enum class EUpgradeTypes : uint8 {
 	BulletVelocity,
 	Range,
 	Recoil,
+	Spread,
 	FireRate,
 	ReloadSpeed,
 	MagazineCapacity,
@@ -41,12 +42,14 @@ inline FText ConvertUpgradeTypesToText(const EUpgradeTypes & GivenUpgradeType) {
 			return LOCTEXT("Range", "Range");
 		case EUpgradeTypes::Recoil:
 			return LOCTEXT("Recoil", "Recoil");
+		case EUpgradeTypes::Spread:
+			return LOCTEXT("Spread", "Spread");
 		case EUpgradeTypes::FireRate:
-			return LOCTEXT("FireRate", "Fire Rate");
+			return LOCTEXT("FireRate", "Rate of Fire");
 		case EUpgradeTypes::ReloadSpeed:
 			return LOCTEXT("ReloadSpeed", "Reload Speed");
 		case EUpgradeTypes::MagazineCapacity:
-			return LOCTEXT("MagazineCapacity", "Magazine Capacity");
+			return LOCTEXT("MagazineCapacity", "Round Capacity");
 
 		// If there is an invalid upgrade type value given, then return a NOT localized error message
 		default:
@@ -66,7 +69,7 @@ inline FText ConvertUpgradeTypesToText(const EUpgradeTypes & GivenUpgradeType, c
 
 		// For each and every supported upgrade type, set the post op value to the type's identifier text format all within the same namespace
 		case EUpgradeTypes::BulletVelocity:
-			PostOpText = LOCTEXT("BulletVelocityPost", "meters per second");
+			PostOpText = LOCTEXT("BulletVelocityPost", "meters/sec");
 			break;
 		case EUpgradeTypes::Range:
 			PostOpText = LOCTEXT("RangePost", "meters");
@@ -74,8 +77,11 @@ inline FText ConvertUpgradeTypesToText(const EUpgradeTypes & GivenUpgradeType, c
 		case EUpgradeTypes::Recoil:
 			PostOpText = LOCTEXT("RecoilPost", "joules");
 			break;
+		case EUpgradeTypes::Spread:
+			PostOpText = LOCTEXT("SpreadPost", "meters/degree");
+			break;
 		case EUpgradeTypes::FireRate:
-			PostOpText = LOCTEXT("FireRatePost", "rounds per minute");
+			PostOpText = LOCTEXT("FireRatePost", "rounds/sec");
 			break;
 		case EUpgradeTypes::ReloadSpeed:
 			PostOpText = LOCTEXT("ReloadSpeedPost", "milliseconds");
@@ -92,6 +98,35 @@ inline FText ConvertUpgradeTypesToText(const EUpgradeTypes & GivenUpgradeType, c
 
 	// Finally, return the wanted text formatted to display the localized numeric with the localized post op text
 	return FText::FormatOrdered(LOCTEXT("PostOpFormatting", "{0} {1}"), FText::AsNumber(GivenValue), PostOpText);
+}
+
+
+//
+inline TSoftObjectPtr<UTexture2D> ConvertUpgradeTypesToIcons(const EUpgradeTypes & GivenUpgradeType) {
+
+	// Switch functionality based on the given upgrade type value
+	switch(GivenUpgradeType) {
+
+		// For each and every supported upgrade type, return it's name within a localized text format all within the same namespace
+		case EUpgradeTypes::BulletVelocity:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/BulletVelocity.BulletVelocity'")));
+		case EUpgradeTypes::Range:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/Range.Range'")));
+		case EUpgradeTypes::Recoil:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/Recoil.Recoil'")));
+		case EUpgradeTypes::Spread:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/Spread.Spread'")));
+		case EUpgradeTypes::FireRate:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/FireRate.FireRate'")));
+		case EUpgradeTypes::ReloadSpeed:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/ReloadSpeed.ReloadSpeed'")));
+		case EUpgradeTypes::MagazineCapacity:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/InventoryIcons/MagazineCapacity.MagazineCapacity'")));
+
+		// If there is an invalid upgrade type value given, then return a NOT localized error message
+		default:
+			return TSoftObjectPtr<UTexture2D>(FSoftObjectPath(TEXT("/Script/Engine.Texture2D'/Game/UserInterfaces/ButtonPrompts/Invalid/RedX.RedX'")));
+	}
 }
 
 
