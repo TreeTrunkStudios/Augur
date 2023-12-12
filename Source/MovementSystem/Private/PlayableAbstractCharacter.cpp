@@ -4,10 +4,10 @@
 
 // All required include files
 #include "PlayableAbstractCharacter.h"
-#include "Net/UnrealNetwork.h"
+//#include "Net/UnrealNetwork.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
-#include "Engine/SkeletalMeshSocket.h"
+//#include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/PawnMovementComponent.h"
 
 
@@ -98,7 +98,7 @@ void APlayableAbstractCharacter::SetupPlayerInputComponent(UInputComponent * Pla
 
 	// Clear out existing mapping, and add our mapping
 	InputSubSystem->ClearAllMappings();
-	InputSubSystem->AddMappingContext(InputMapping, 0);
+	InputSubSystem->AddMappingContext(InputMapping, 10);
 
 	// Locally store the enhanced input component by simply casting the current input component to the wanted type
 	UEnhancedInputComponent * EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);

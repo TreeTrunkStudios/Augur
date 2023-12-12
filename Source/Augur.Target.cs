@@ -13,12 +13,14 @@ public class AugurTarget : TargetRules
 		bLegacyParentIncludePaths = false;
 		CppStandard = CppStandardVersion.Default;
 		WindowsPlatform.bStrictConformanceMode = true;
+		ExtraModuleNames.Add("EquippableSystem");
+		ExtraModuleNames.Add("GameSettingsSubsystem");
+		ExtraModuleNames.Add("GenericInteractionSystem");
+		ExtraModuleNames.Add("GenericInventorySystem");
+		ExtraModuleNames.Add("GlobalSystem");
+		ExtraModuleNames.Add("InputImageSubsystem");
 		ExtraModuleNames.Add("MovementSystem");
 		ExtraModuleNames.Add("SaveGameSubsystem");
 		ExtraModuleNames.Add("SubtitleSystem");
-		ExtraModuleNames.Add("EquippableSystem");
-		ExtraModuleNames.Add("GameSettingsSubsystem");
-		ExtraModuleNames.Add("GenericInventorySystem");
-		ExtraModuleNames.Add("InputImageSubsystem");
 	}
 }

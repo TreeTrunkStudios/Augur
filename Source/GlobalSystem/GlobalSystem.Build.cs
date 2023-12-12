@@ -8,7 +8,7 @@ public class GlobalSystem : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[]{"Core", "CoreUObject", "Engine", "InputCore", "MovementSystem", "SubtitleSystem", "GenericInteractionSystem", "GenericInventorySystem", "EquippableSystem"});
+		PublicDependencyModuleNames.AddRange(new string[]{"Core", "CoreUObject", "Engine", "InputCore", "MovementSystem", "SubtitleSystem", "GenericInteractionSystem", "GenericInventorySystem", "EquippableSystem", "Slate", "SlateCore"});
 
 		PrivateDependencyModuleNames.AddRange(new string[]{});
 

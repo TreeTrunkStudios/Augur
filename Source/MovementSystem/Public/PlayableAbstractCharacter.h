@@ -23,7 +23,7 @@ class MOVEMENTSYSTEM_API APlayableAbstractCharacter : public AAbstractCharacter 
 protected:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UCameraComponent * PlayerCamera = nullptr;
 
 
@@ -31,31 +31,31 @@ protected:
 protected:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputMappingContext * InputMapping = nullptr;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputAction * InputActionMovement = nullptr;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputAction * InputActionLooking = nullptr;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputAction * InputActionMouseLooking = nullptr;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputAction * InputActionChangeGait = nullptr;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputAction * InputActionChangeStance = nullptr;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, NoClear, meta=(NoResetToDefault))
 	UInputAction * InputActionChangeSprint = nullptr;
 
 

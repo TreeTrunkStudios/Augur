@@ -1,18 +1,16 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{113C7BC5-49A4-5CB5-F26B-53A5BBDBC432}",
+	"EngineAssociation": "{5D598DD7-45E2-2DE9-88FF-F79EF5608E2C}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "MovementSystem",
+			"Name": "EquippableSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"EnhancedInput",
-				"InputCore",
-				"GameSettingsSubsystem"
+				"CoreUObject"
 			]
 		},
 		{
@@ -28,16 +26,70 @@
 			]
 		},
 		{
-			"Name": "SaveGameSubsystem",
+			"Name": "GenericInteractionSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"CoreUObject"
+				"CoreUObject",
+				"InputImageSubsystem"
 			]
 		},
 		{
-			"Name": "EquippableSystem",
+			"Name": "GenericInventorySystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject",
+				"UMG",
+				"Slate",
+				"SlateCore",
+				"EnhancedInput"
+			]
+		},
+		{
+			"Name": "GlobalSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject",
+				"UMG",
+				"EnhancedInput",
+				"MovementSystem",
+				"SubtitleSystem",
+				"GenericInteractionSystem",
+				"GenericInventorySystem",
+				"EquippableSystem"
+			]
+		},
+		{
+			"Name": "InputImageSubsystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject",
+				"EnhancedInput",
+				"UMG",
+				"Slate",
+				"SlateCore"
+			]
+		},
+		{
+			"Name": "MovementSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"EnhancedInput",
+				"InputCore",
+				"GameSettingsSubsystem"
+			]
+		},
+		{
+			"Name": "SaveGameSubsystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
@@ -56,40 +108,13 @@
 			]
 		},
 		{
-			"Name": "GenericInventorySystem",
+			"Name": "WeaponUpgradeSystem",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
 				"CoreUObject",
 				"UMG"
-			]
-		},
-		{
-			"Name": "InputImageSubsystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"CoreUObject",
-				"EnhancedInput",
-				"CommonInput"
-			]
-		},
-		{
-			"Name": "GlobalSystem",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"CoreUObject",
-				"UMG",
-				"EnhancedInput",
-				"MovementSystem",
-				"SubtitleSystem",
-				"GenericInteractionSystem",
-				"GenericInventorySystem",
-				"EquippableSystem"
 			]
 		}
 	],
@@ -104,7 +129,7 @@
 		},
 		{
 			"Name": "CommonUI",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "Paper2D",

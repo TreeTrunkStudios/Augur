@@ -1,0 +1,255 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=007a93ee_002D2116_002D0a67_002D05a2_002D305702423fe6_0023DatasmithNavisworks2024/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=01f8d4e4_002Dd78a_002D4c88_002D65e3_002De81db99197df_0023DatasmithSolidworks2021/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=02917990_002Dcf5b_002D385d_002D15d5_002D4cf6802ca7bf_0023DatasmithMax2019/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=087b46f5_002Dbea9_002Df983_002D1177_002De9e2c59f42ef_0023ZenDashboard/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=0add4935_002D62f1_002Ddc7a_002D3e50_002D4e54374a510b_0023ReplicationSystemLowLevelTests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=0db97778_002D9445_002Da5f6_002D1bb0_002D2a26b8b0a077_0023UnrealVersionSelector/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=12b1ad25_002Da7a5_002D19c1_002D2879_002D002ef6a93687_0023DerivedDataBuildWorker/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=13797eeb_002D9b4f_002D690f_002Df1ce_002De27dc78e57e4_0023AutomationToolLauncher/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=1419220c_002D5c2f_002De913_002D09c2_002De2fd49fe8275_0023UnrealMultiUserSlateServer/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=16834eb3_002Ddc07_002D931e_002D3711_002D90177fa7d8d9_0023SwitchboardListenerHelper/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=1a9514b6_002D63b7_002D4943_002D9a2d_002D4a95dee59b68_0023EpicGames_002EPerforce_002EManaged/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=1d0e6ca6_002D4020_002D6886_002D79e5_002Db4d64c73fe33_0023DatasmithNavisworks2022/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=20d1b792_002D6dda_002D195c_002D72b1_002Dc86473b80fde_0023DatasmithUE4ArchiCAD/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=22659d5e_002Dadd9_002Daa27_002D9b18_002Dc01b8246babf_0023DatasmithMax2018/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=22940f33_002D2a93_002D37ab_002D104b_002Dc82717013ade_0023DatasmithSketchUpRuby2021/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=22bda4e0_002D0238_002D0691_002D4cfc_002Dd1313e4356bf_0023DatasmithNavisworks2023/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=247d70d4_002D6408_002D47de_002Dba4e_002Daf92c2c2ca49_0023EpicGames_002ERedis/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=257f34f8_002Dfcc6_002D7e50_002D6fb7_002D676acd56ae12_0023EpicGames_002EMongoDB/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2ad10231_002D482b_002D6b38_002Df7c1_002D1f47c5644fc1_0023DatasmithMax2016/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2b13b25e_002Dbb93_002D0f5c_002Dc157_002D60325a5cd209_0023EpicGames_002EAspNet/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2e267782_002D233a_002Dae28_002D12cb_002D83ff8a315b38_0023UnrealInsights/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=32e891f2_002D8a93_002Df6d7_002D4589_002Dfc0ff53241b8_0023DatasmithRevit2021/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=348c6dc4_002D59f3_002D95f4_002D80bb_002Dd3f296cc8478_0023EpicGames_002ETracing/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=352c5671_002Dc173_002Dabd7_002Dd6a7_002D2e4ddbe814ba_0023DatasmithSketchUpRuby2022/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=385da97b_002D524a_002Db982_002De403_002D0a8e6c493056_0023CrashReportClientEditor/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=38afcbdc_002D87a5_002D2d57_002D9293_002D13a7261100c9_0023DatasmithRevit2019/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=39b2c5e2_002Dc0e0_002Df319_002D859c_002D3df6d98338d8_0023BlankProgram/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=39b4828a_002Da115_002De0f0_002Df8a9_002D72ac7b9e9050_0023DotNetPerforceLib/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=3b0ae1af_002D0342_002Dd0b2_002Df4a2_002D7a33224d006f_0023UnrealPak/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=3e3cadee_002D316c_002D09c0_002D881b_002Df3bec6f0b93b_0023EpicGames_002EOIDC/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=41637c67_002D29e0_002Dad84_002Dc960_002D9568362ff47d_0023UnrealLightmass/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=446721a6_002D1709_002Df01f_002D8c6e_002Dd89b4ef4ec3e_0023HeadlessChaos/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4ad70a24_002Dd304_002Dd7ee_002Dd734_002Da875134cee20_0023CrashReportClient/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4b37b07a_002D7a42_002Dc6a6_002Dbc5b_002Dadc4ccf5f302_0023EpicGames_002EHorde_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4c3a436d_002D85a0_002De489_002Dd3ca_002D45114019b270_0023EpicGames_002EPerforce_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4dde5f29_002Da8d6_002Dbf0f_002De84f_002Df3aad7b2a3ce_0023UnrealMultiUserServer/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=4e4ea9d8_002Dc475_002D497c_002D62b2_002Dbe85638cb29b_0023DerivedDataTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=50f4d5db_002Db47c_002D85e3_002Dfad9_002D4aeaba72a494_0023DatasmithRevit2020/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=52c94f2e_002D5d75_002Dd149_002Dc583_002D3e20a3cbf8d2_0023EpicGames_002ERedis_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=57a5b6a3_002Dc4e2_002Dcbab_002Df9c0_002D5f0f0b60e396_0023EpicGames_002EPerforce_002EManaged_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5961d193_002D7be2_002Dfb9d_002D81ef_002Dc1efff09f443_0023DatasmithMax2023/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5ce21fdb_002Db8db_002D2a97_002D6d67_002Dcf8a4f1979dc_0023ChaosUserDataPTTests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5d25884d_002Df613_002D81c5_002D0b39_002Db101741ea6ba_0023DatasmithMax2017/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=623fb791_002Dd8a4_002D8ad4_002D66c6_002Ddaacb77a2bea_0023DatasmithNavisworks2021/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=63e7b7a7_002D6295_002D38f0_002Dd779_002Dd74842e0ef3e_0023DatasmithArchiCAD/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=64c15f66_002D8623_002Dedcf_002D7749_002D1fd38875a48e_0023InterchangeWorker/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6617448e_002D2916_002Dffdb_002D421f_002D26e5a784d2a4_0023TestPAL/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=66b4810d_002Dd999_002Dce45_002Db64a_002D3fca3b501442_0023Unsync/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=68e60b7c_002D8942_002Dd273_002De57d_002D298041f17d60_0023SwitchboardListener/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=699025f9_002Dd565_002D730f_002D8c18_002Df8d26e72a746_0023UninstallHelper/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6a120ffe_002D8ba8_002Dcbd5_002D3925_002D9e8e124be66a_0023EpicGames_002EUHT/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6d249933_002D1652_002Dae57_002D904b_002D2708a283cce8_0023ShaderCompileWorker/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6de4335a_002D0a3e_002De5fa_002D9632_002D221351a939da_0023DatasmithNavisworks2019/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6e67cddc_002Dce17_002Da733_002D1a64_002Dd5eb8db77c1d_0023UnrealAndroidFileTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6ec529cb_002De02f_002D5b4f_002Deb2e_002D1734720b57ca_0023EpicGames_002EBox/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6f8306b4_002D494d_002D0717_002D3af7_002D6f2bf1e354a8_0023EpicGames_002ESerialization/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=749b5e70_002D1ffd_002D209d_002D9970_002Dd81c885f46ff_0023TextureShareSDK/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=7952da3c_002De316_002Dc373_002D926a_002Dc637956c3e96_0023EpicGames_002ESerialization_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=79890fd7_002Ddf46_002Dba1d_002Dc268_002D36fcf73e5e36_0023HeadlessChaosPerf/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=7f9f948b_002Da5c0_002D6624_002D96ab_002Df11eae24c58b_0023EpicGames_002EIoHash/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=81d5b39d_002D4f29_002D5431_002D2a09_002Dc8086d0d3228_0023UnrealPackageTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=85e16c28_002D733b_002D6b91_002D8c0b_002D9ffec580beb7_0023EpicGames_002EHorde/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=8c7161fc_002Dc039_002D48d3_002D065e_002Debb233d7184e_0023UGSCore/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9298cd2a_002D47a2_002D142a_002De3d2_002Db827958e280b_0023EpicGames_002ESlack/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9b07e0de_002Dfcae_002D2501_002D3363_002D6bd3a79b42bb_0023UnrealRecoverySvc/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9c2ccc85_002Dce3e_002Ddb72_002D95c0_002D0f41342eb60c_0023EpicGames_002EJupiter/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9caa1a99_002D2e7f_002Dbc86_002D09dd_002D07117848fd97_0023DatasmithRevit2022/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9d78ccbd_002Df07b_002Da0a5_002Dc41a_002D7bd3a7357416_0023WebTests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9db8eb1f_002Db7de_002D771e_002D2fcc_002Dd3d188a741af_0023DatasmithSDK/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=a3421802_002D87f8_002D5f17_002Dbe32_002D60da52163506_0023UnrealObjectPtrTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=a66b9365_002D7590_002D3c43_002D5bcb_002D13ad21ac437d_0023Engine/@EntryIndexedValue">True</s:Boolean>
+	
+	
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=7e112c6b_002D8d59_002Da41a_002D6f7c_002D4a1cc83a016a_0023Android_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=89c7c3a2_002D4f5d_002D3020_002Ddb56_002D8bef3008fd07_0023Apple_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=13cbc374_002D8596_002D1c54_002D6548_002Dd1526776b04d_0023AutomationUtils_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=281b65e8_002D499e_002Df9b4_002D31aa_002Dbe8931bd9dfa_0023BuildGraph_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2a53a7c0_002D2228_002Ddb1b_002D8db5_002Da6dd49315d98_0023CookedEditor_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=816ce5fc_002D862a_002D74f7_002D1b94_002D644c09bf20b0_0023CrowdinLocalization_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=2dc13951_002Deb21_002D19e5_002D9011_002D41fb812ee201_0023Gauntlet_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5c8c76fa_002D37a1_002Dce98_002D3e14_002D5ed3f5b82bd4_0023IOS_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=3567e382_002D4941_002Dee81_002Db741_002Df6be922f6afe_0023Linux_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=248a9b20_002D322e_002D60f0_002D88e9_002Da28fb4890a79_0023Localization_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=a8625983_002De505_002Daac4_002D4462_002Dc4ed1495f18d_0023DatasmithRhino6/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=abd62bef_002D29cd_002Dd949_002Dc37e_002D7351b38151de_0023ReplicationSystemTest/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ad4e90b2_002Da3a7_002D4556_002Dbe2c_002D2b5d25b90a48_0023EpicGames_002EPerforce_002EFixture/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ae8db641_002Dd60d_002D2509_002D227e_002D94f5602897f6_0023EpicGames_002ECore_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b33e3077_002Da26d_002Dc065_002Da5f8_002D95384db77254_0023SlateViewer/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b340b925_002D699e_002Dad84_002D3855_002D78d4c70657c3_0023DatasmithMax2020/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b3e563c5_002D5bb4_002D6ecb_002D7361_002D92ba20fa5b8f_0023DatasmithSketchUpRuby2019/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b4050cd2_002D394c_002Dc629_002Dd08d_002D56dd93e0914a_0023EpicGames_002ETracing_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b432d705_002D3ed4_002Dc65b_002D550f_002Dae53d5c5bc55_0023BootstrapPackagedGame/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b47bda91_002D4155_002Da0e5_002D889c_002D681b682dea82_0023EpicGames_002EBuildGraph_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b679f581_002D1de6_002D776c_002D6601_002D899189259608_0023TextureBuildWorker/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b90735d9_002D7f17_002D30a6_002D7fcc_002Dfb9cb3383b36_0023UnrealFrontend/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=bd3742cf_002De7e7_002D2e36_002D5a39_002Db5ec631f563b_0023AutomationTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=be54ba58_002Da2c0_002D2fdc_002D5c96_002Dab51721f40f5_0023LiveCodingConsole/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=bfe490f9_002D91e2_002D0676_002Db356_002D3448e75c6d9d_0023EpicGames_002EBuildGraph/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c52c27da_002D926f_002D255e_002Dabf0_002Dbb8ded1a0112_0023LowLevelTests_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=106c0acf_002D43cf_002D4b31_002D13aa_002Dcc563fb84bac_0023Mac_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=c0cb5a60_002Db278_002D679a_002Dd7fa_002Dc5592f5b6b5d_0023OneSkyLocalization_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=8660e94c_002Dec89_002Db9b1_002D158d_002D0d895f3ca825_0023AutomationScripts_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=94bcf6ab_002De34e_002D94b5_002D57f7_002Dcc6db1ebb647_0023SmartlingLocalization_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=5267ece4_002D968b_002Dc094_002D0bf7_002D415173cfe069_0023SteamDeck_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ca0f8feb_002D5abf_002D3c02_002D5305_002D57233956f0b0_0023EpicGames_002ECore/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ca4abc80_002D1e97_002De008_002Da744_002D634c6d9eb8e0_0023DatasmithSketchUpRuby2023/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=cb6259c4_002Dcf0a_002Dc1d8_002Df57e_002D6e4f1039acc9_0023EpicGames_002EMsBuild/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=cdf9b0f7_002D5612_002Da48f_002D7c58_002Ddccb6ac52339_0023UnrealVirtualizationTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=cecb3328_002D107b_002Db638_002D304b_002Daf83a47c44ff_0023Turnkey_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=945de67b_002Dfc0f_002D2fa0_002D4d86_002D9dd102488614_0023TVOS_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=397adfaf_002Dbda6_002D117c_002D88a5_002Dc78f7f2c51df_0023Win_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=6c840817_002Dfe5c_002D2fa0_002D5e6b_002Dc27a7e7372ea_0023XLocLocalization_002EAutomation/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=d2b84d32_002Db3d3_002D7fc1_002D230b_002D5062bf34f28e_0023SymsLibDump/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=d50055e2_002Ddd67_002Db867_002D6bb4_002Da487cc1caf2b_0023DatasmithSketchUpRuby2020/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=d62024d7_002Defb0_002Db7cb_002D4591_002D0a2c1cd8b86b_0023DatasmithCADWorker/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=d8ab2a44_002D3d95_002D0ded_002Df109_002D19c4a9092ac9_0023FoundationTests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=d8ebe742_002Da744_002D3508_002Da73a_002D57c2f3e4e959_0023BaseTextureBuildWorker/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=da3717f4_002Dcf61_002Dabe3_002Dc70a_002D7a86aaaa730d_0023SlateUGS/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=dc9a616d_002D1702_002Dfb98_002D37a8_002Dcee5f94bb4f3_0023EpicGames_002EPerforce/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=de64c1a2_002D4a4b_002Dc9e2_002D7d73_002D4c3cb6eed9be_0023BenchmarkTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=decaaee2_002D6b10_002Debb8_002D92f0_002D557793d35e42_0023UnrealBuildTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=dfb36f5c_002D52d4_002D968a_002D6e92_002D462ee5143243_0023BuildPatchTool/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=e0831ba9_002D7df5_002Dd123_002Dd775_002D71c5b0f42074_0023DatasmithMax2021/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=e0d0b403_002D201c_002Df1c9_002D89c2_002Dfc4ec565745c_0023EpicGames_002EBuild/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=e5d95a52_002D47c5_002Dd410_002Dee13_002Da058c77c669e_0023EpicGames_002EIoHash_002ETests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=e95185d5_002D4905_002Dd373_002D44b1_002D304c0c62029d_0023DatasmithRevit2018/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ec28d5a3_002D0fda_002Db663_002D6282_002Ddae3b1bdf2ae_0023DatasmithRhino7/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ecbca5b2_002D7f0c_002Dd79a_002D0790_002D3348437a8c2f_0023NetworkPredictionTests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ed5d48f9_002Dabd2_002De3ba_002Df6bc_002Dc4215fc569f3_0023EpicGames_002EOodle/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=ee3f8288_002Dfbee_002Defc3_002D7615_002Dba66270e69ed_0023DatasmithNavisworks2020/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=f046ee88_002D6d28_002D78fa_002D69f8_002Db9c11cd49db1_0023EpicWebHelper/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=f183f92d_002D62c8_002D9252_002Dc381_002D049c121f6578_0023DatasmithMax2024/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=f4d1ce83_002D0b5e_002D74b6_002D3082_002Db5e862e6797b_0023ChaosVisualDebugger/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=f7287864_002Db57a_002D3951_002D2015_002D74bfd5e7420b_0023DatasmithValidator/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=f85b8972_002D6ccf_002Dec77_002D02af_002D683afac0a037_0023DatasmithMax2022/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=fabc8735_002D9430_002Dcf49_002Dcf79_002D35c36c4b4916_0023DatasmithRevit2023/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=fb053f94_002D13d7_002D689a_002Dccb5_002Da194a54a31ef_0023AutoRTFMTests/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=fcae3d11_002D5e83_002D7f2b_002D9646_002D5780bef3ef3c_0023DatasmithFacadeCSharp/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=fd152fe5_002D4381_002Dd174_002Defef_002Dc862eb65d016_0023GitDependencies/@EntryIndexedValue">True</s:Boolean>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	</wpf:ResourceDictionary>
