@@ -80,17 +80,19 @@ void UAbstractInventoryItemWidget::Setup(UAbstractInventoryWidget * GivenParentI
 	// TODO: Potentially get fancy by making the text color change based on a percentage of current stack count to max stack count??
 	// If the current item's max stack count is greater than zero, then we can calculate a fade effect and make it visible
 	if (const int32 CurrentMaxStackCount = (ItemData->ItemData.MaxStackCount <= 1 ? ItemData->ItemData.InternalMaxStackCount : ItemData->ItemData.MaxStackCount); CurrentMaxStackCount > 0) {
+
+		//
 		CurrentStackCache = ItemData->ItemDataArray[ItemIndex].CurrentStackCount;
-		ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor + (static_cast<float>(CurrentStackCache / CurrentMaxStackCount)) * (FullColor - EmptyColor)});
+		ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor + ((static_cast<float>(ItemData->ItemDataArray[GetItemIndex()].CurrentStackCount - 1) / CurrentMaxStackCount) * (FullColor - EmptyColor))});
 		ItemStackCountText->SetVisibility(ESlateVisibility::Visible);
+
+		// Set this item's stack count text as a localized text version of its current stack count
+		ItemStackCountText->SetText(FText::AsNumber(CurrentStackCache));
 	}
 
 	// Else, the item is not stackable, either externally or internally, and therefore has no item stack count whatsoever
 	else
 		ItemStackCountText->SetVisibility(ESlateVisibility::Collapsed);
-	
-	// Set this item's stack count text as a localized text version of its current stack count
-	ItemStackCountText->SetText(FText::AsNumber(CurrentStackCache));
 
 	//
 	ParentInventoryWidget = GivenParentInventoryWidget;
@@ -322,6 +324,9 @@ void UAbstractInventoryItemWidget::SelectItem() {
 
 	// Ensure that our item stays highlighted, as it is technically still the focus
 	//ItemHighlightBorder->SetVisibility(ESlateVisibility::Visible);
+
+	//
+	IsInSubMenu = true;
 	
 	// Activate our parent widget's sub menu and move it to our target location
 	ParentInventoryWidget->ActivateSubMenu(SubMenuAttachment, this);
@@ -373,7 +378,9 @@ void UAbstractInventoryItemWidget::UpdateStackCount() {
 
 			// Update the color of the current stack count text to the new fade values IFF it is a stackable item, either internally or externally
 			if (const int32 CurrentMaxStackCount = (ItemData->ItemData.MaxStackCount <= 1 ? ItemData->ItemData.InternalMaxStackCount : ItemData->ItemData.MaxStackCount); CurrentMaxStackCount > 0)
-				ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor + (static_cast<float>(ItemData->ItemDataArray[ItemIndex].CurrentStackCount / CurrentMaxStackCount)) * (FullColor - EmptyColor)});
+				ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor + ((static_cast<float>(ItemData->ItemDataArray[GetItemIndex()].CurrentStackCount - 1) / CurrentMaxStackCount) * (FullColor - EmptyColor))});
+			else
+				ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor});
 		}
 	}
 }
@@ -455,7 +462,9 @@ void UAbstractInventoryItemWidget::HandleChangedColorHex(IConsoleVariable * Poin
 	
 	// Update the color of the current stack count text to the new fade values IFF it is a stackable item, either internally or externally
 	if (const int32 CurrentMaxStackCount = (ItemData->ItemData.MaxStackCount <= 1 ? ItemData->ItemData.InternalMaxStackCount : ItemData->ItemData.MaxStackCount); CurrentMaxStackCount > 0)
-		ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor + (static_cast<float>(ItemData->ItemDataArray[GetItemIndex()].CurrentStackCount / CurrentMaxStackCount)) * (FullColor - EmptyColor)});
+		ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor + ((static_cast<float>(ItemData->ItemDataArray[GetItemIndex()].CurrentStackCount - 1) / CurrentMaxStackCount) * (FullColor - EmptyColor))});
+	else
+		ItemStackCountText->SetColorAndOpacity(FSlateColor{EmptyColor});
 }
 
 
@@ -476,7 +485,7 @@ void UAbstractInventoryItemWidget::NativeOnAddedToFocusPath(const FFocusEvent & 
 
 	// Else, update the item information to this widget's default empty item text instead
 	else
-		ParentInventoryWidget->UpdateItemInformation(this, EmptyItemName, EmptyItemDescription);
+		ParentInventoryWidget->UpdateItemInformation(this, FText::GetEmpty(), FText::GetEmpty());
 }
 
 
@@ -485,6 +494,10 @@ void UAbstractInventoryItemWidget::NativeOnRemovedFromFocusPath(const FFocusEven
 
 	// 
 	Super::NativeOnRemovedFromFocusPath(InFocusEvent);
+
+	//
+	if (IsInSubMenu == true)
+		return;
 
 	// 
 	for (UWidget * CurrentHighlightWidget : HighlightWidgets) {

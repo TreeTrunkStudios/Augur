@@ -80,14 +80,6 @@ protected:
 	//
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSoftObjectPtr<UMaterialInterface> TargetHighlightMaterial;
-
-	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText EmptyItemName = FText::GetEmpty();
-
-	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText EmptyItemDescription = FText::GetEmpty();
 	
 
 	//
@@ -109,6 +101,9 @@ protected:
 
 	//
 	uint8 ItemPosition;
+
+	//
+	bool IsInSubMenu = false;
 	
 
 //

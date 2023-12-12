@@ -19,13 +19,20 @@ bool UAbstractItemUseSubMenuWidget::Initialize() {
 	if (IsValid(RemoveButton) == false || IsValid(InteractButton) == false || IsValid(CombineButton) == false || IsValid(MoveButton) == false || IsValid(ExamineButton) == false || IsValid(DiscardButton) == false)
 		return ReturnValue;
 
-	//
+	// Ensure that when the buttons are clicked, they do what we want them to do
 	RemoveButton->OnClicked.AddDynamic(this, &UAbstractItemUseSubMenuWidget::ExitMenuButton);
 	InteractButton->OnClicked.AddDynamic(this, &UAbstractItemUseSubMenuWidget::InteractItemButton);
 	CombineButton->OnClicked.AddDynamic(this, &UAbstractItemUseSubMenuWidget::CombineItemButton);
 	MoveButton->OnClicked.AddDynamic(this, &UAbstractItemUseSubMenuWidget::MoveItemButton);
 	ExamineButton->OnClicked.AddDynamic(this, &UAbstractItemUseSubMenuWidget::ExamineItemButton);
 	DiscardButton->OnClicked.AddDynamic(this, &UAbstractItemUseSubMenuWidget::DiscardItemButton);
+
+	// Ensure that if a button is hovered over, it gains the user's focus
+	InteractButton->OnHovered.AddDynamic(InteractButton, &UWidget::SetFocus);
+	CombineButton->OnHovered.AddDynamic(CombineButton, &UWidget::SetFocus);
+	MoveButton->OnHovered.AddDynamic(MoveButton, &UWidget::SetFocus);
+	ExamineButton->OnHovered.AddDynamic(ExamineButton, &UWidget::SetFocus);
+	DiscardButton->OnHovered.AddDynamic(DiscardButton, &UWidget::SetFocus);
 
 	// Create new, defaulted objects for each and every single button's navigation systems
 	InteractButton->Navigation = NewObject<UWidgetNavigation>(InteractButton);
@@ -277,22 +284,19 @@ void UAbstractItemUseSubMenuWidget::Setup(const UPanelWidget * GivenAttachment, 
 
 // 
 UWidget * UAbstractItemUseSubMenuWidget::InteractItem(EUINavigation GivenNavigation) {
-	this->SetVisibility(ESlateVisibility::Collapsed);
-	return FocusedInventoryItem->InteractItem();
+	return Cast<UAbstractInventoryItemWidget>(this->ExitMenu(EUINavigation::Previous))->InteractItem();
 }
 
 
 // 
 UWidget * UAbstractItemUseSubMenuWidget::MoveItem(EUINavigation GivenNavigation) {
-	this->SetVisibility(ESlateVisibility::Collapsed);
-	return FocusedInventoryItem->MoveItem();
+	return Cast<UAbstractInventoryItemWidget>(this->ExitMenu(EUINavigation::Previous))->MoveItem();
 }
 
 
 // 
 UWidget * UAbstractItemUseSubMenuWidget::CombineItem(EUINavigation GivenNavigation) {
-	this->SetVisibility(ESlateVisibility::Collapsed);
-	return FocusedInventoryItem->CombineItem();
+	return Cast<UAbstractInventoryItemWidget>(this->ExitMenu(EUINavigation::Previous))->CombineItem();
 }
 
 
@@ -334,8 +338,7 @@ UWidget * UAbstractItemUseSubMenuWidget::ExamineItem(EUINavigation GivenNavigati
 
 // 
 UWidget * UAbstractItemUseSubMenuWidget::DiscardItem(EUINavigation GivenNavigation) {
-	this->SetVisibility(ESlateVisibility::Collapsed);
-	return FocusedInventoryItem->DiscardItem();
+	return Cast<UAbstractInventoryItemWidget>(this->ExitMenu(EUINavigation::Previous))->DiscardItem();
 }
 
 
@@ -344,7 +347,9 @@ UWidget * UAbstractItemUseSubMenuWidget::ExitMenu(EUINavigation GivenNavigation)
 	this->SetVisibility(ESlateVisibility::Collapsed);
 	const TWeakObjectPtr<UAbstractInventoryItemWidget> LocalFocusWidget = FocusedInventoryItem;
 	FocusedInventoryItem = nullptr;
-	return (LocalFocusWidget.IsValid() ? LocalFocusWidget->GetDesiredFocusWidget() : nullptr);
+	if (LocalFocusWidget.IsValid())
+		LocalFocusWidget->IsInSubMenu = false;
+	return LocalFocusWidget.Get();
 }
 
 

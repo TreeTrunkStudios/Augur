@@ -223,9 +223,19 @@ void UAbstractInventoryWidget::MakeInvisible(bool IsInternal) {
 
 // 
 void UAbstractInventoryWidget::UpdateItemInformation(UAbstractInventoryItemWidget * GivenFocusedWidget, const FText & ItemName, const FText & ItemDescription) {
+
+	// Update our wanted information
 	CurrentItemWidget = GivenFocusedWidget;
 	ItemNameText->SetText(ItemName);
 	ItemDescriptionText->SetText(ItemDescription);
+
+	// If we have given empty or whitespace only names and descriptions, then call hide all text to be able to hide any and all extra decorations
+	if (ItemName.IsEmptyOrWhitespace() && ItemDescription.IsEmptyOrWhitespace())
+		HandleHideAllText();
+
+	// Else, ensure that those extra decorations are visible again
+	else
+		HandleShowAllText();
 }
 
 

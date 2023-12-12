@@ -199,6 +199,14 @@ public:
 	void RotateTempItem();
 
 	//
+	UFUNCTION(BlueprintImplementableEvent)
+	void HandleShowAllText();
+
+	//
+	UFUNCTION(BlueprintImplementableEvent)
+	void HandleHideAllText();
+
+	//
 	void ActivateSubMenu(UPanelWidget * GivenAttachment, UAbstractInventoryItemWidget * GivenInventoryItem);
 
 

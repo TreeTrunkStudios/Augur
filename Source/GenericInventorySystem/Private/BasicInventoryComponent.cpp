@@ -228,8 +228,9 @@ void UBasicInventoryComponent::EnsureInventoryItemSetSafety() {
 			}
 
 			// If the item's stack count is greater than the item type's max stack count, then reset it to the max stack count
-			if (CurrentInternalItem.CurrentStackCount > CurrentItem.ItemData.MaxStackCount) {
-				CurrentInternalItem.CurrentStackCount = CurrentItem.ItemData.MaxStackCount;
+			const int32 TrueMaxStackCount = (CurrentItem.ItemData.MaxStackCount <= 1 ? CurrentItem.ItemData.InternalMaxStackCount : CurrentItem.ItemData.MaxStackCount);
+			if (CurrentInternalItem.CurrentStackCount > TrueMaxStackCount) {
+				CurrentInternalItem.CurrentStackCount = TrueMaxStackCount;
 			}
 			
 			// Adjust the remaining slots variable to take into account the now valid inventory item
