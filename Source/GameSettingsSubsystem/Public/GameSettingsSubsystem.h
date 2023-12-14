@@ -90,12 +90,12 @@ public:
 	void SetSettingData(FName SectionName, FName VariableName, FUnionDataStruct VariableData);
 
 	// 
-	const bool DoesSettingExist(FName SectionName, FName VariableName) {
+	bool DoesSettingExist(FName SectionName, FName VariableName) {
 		return (SettingsMap.Contains(SectionName) && SettingsMap.FindChecked(SectionName).Contains(VariableName));
 	}
 
 	// 
-	const SettingsDataUnion GetSettingData_Internal(FName SectionName, FName VariableName) {
+	SettingsDataUnion GetSettingData_Internal(FName SectionName, FName VariableName) {
 		return SettingsMap.FindChecked(SectionName).FindChecked(VariableName);
 	}
 
