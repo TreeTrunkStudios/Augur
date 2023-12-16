@@ -8,8 +8,8 @@
 // 
 #include "CoreMinimal.h"
 #include "Subsystems/EngineSubsystem.h"
-#include "SettingsOptionsStruct.h"
 #include "Containers/Union.h"
+#include "GlobalSettingsConsoleVariables.h"
 #include "GameSettingsSubsystem.generated.h"
 
 
@@ -17,44 +17,10 @@
 typedef TUnion<bool, int32, float, FString> SettingsDataUnion;
 
 
-// 
-typedef TMulticastDelegate<void(const TMap<FName, SettingsDataUnion>&)> FSettingsUpdate;
-
-
 // Subsystem which handles all game settings, both in setting and getting them, in a simplistic, thread-safe singleton way
 UCLASS()
-class GAMESETTINGSSUBSYSTEM_API UGameSettingsSubsystem final : public UEngineSubsystem
-{
+class GAMESETTINGSSUBSYSTEM_API UGameSettingsSubsystem final : public UEngineSubsystem {
 	GENERATED_BODY()
-
-
-// 
-public:
-
-	// 
-	FSettingsUpdate ControlSettingsUpdate;
-
-	// 
-	FSettingsUpdate GameplaySettingsUpdate;
-
-	// 
-	FSettingsUpdate LanguageSettingsUpdate;
-
-	// 
-	FSettingsUpdate AccessibilitySettingsUpdate;
-
-	// 
-	FSettingsUpdate DebugSettingsUpdate;
-
-	// 
-	FSettingsUpdate AudioSettingsUpdate;
-
-	// 
-	FSettingsUpdate DisplaySettingsUpdate;
-
-	// 
-	FSettingsUpdate GraphicsSettingsUpdate;
-
 	
 //
 public:
@@ -80,14 +46,6 @@ public:
 	// 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentGameID(const FString & NewGameID);
-
-	// 
-	UFUNCTION(BlueprintCallable)
-	const FUnionDataStruct GetSettingData(FName SectionName, FName VariableName);
-
-	// 
-	UFUNCTION(BlueprintCallable)
-	void SetSettingData(FName SectionName, FName VariableName, FUnionDataStruct VariableData);
 
 	// 
 	bool DoesSettingExist(FName SectionName, FName VariableName) {

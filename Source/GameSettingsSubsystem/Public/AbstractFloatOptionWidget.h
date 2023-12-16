@@ -22,12 +22,16 @@ class GAMESETTINGSSUBSYSTEM_API UAbstractFloatOptionWidget : public UAbstractSet
 protected:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(BindWidget))
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	USpinBox * SpinBox;
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(BindWidget))
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	UProgressBar * ProgressBar;
+
+	// 
+	UPROPERTY(EditInstanceOnly, meta=(ArraySizeEnum="ESettingsLevel"))
+	float SettingsLevelValues[static_cast<uint8>(ESettingsLevel::Num)];
 
 
 //
@@ -46,5 +50,12 @@ protected:
 	
 	//
 	UFUNCTION()
-	void HandleStateChange(float NewState, ETextCommit::Type CommitType);	
+	void HandleStateChange(float NewState, ETextCommit::Type CommitType);
+
+
+//
+public:	
+
+	//
+	virtual void UpdateToTargetLevel(const ESettingsLevel & GivenSettingsLevel) override;
 };

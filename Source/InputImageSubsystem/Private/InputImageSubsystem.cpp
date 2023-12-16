@@ -33,19 +33,17 @@ bool UInputImageSubsystem::Tick(float DeltaTime) {
 
 
 // 
-uint8 UInputImageSubsystem::CollectTargetInputType(const int32 & GivenInputTypeOverride) const {
+uint8 UInputImageSubsystem::CollectTargetInputType() const {
 	
-	// TESTING PURPOSES ONLY
-	/*if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 100.0f, FColor::Purple, GetCurrentGamepadName().ToString());
-	}*/
+	//
+	const int32 GivenInputTypeOverride = CVarGamepadInputTypeOverride.GetValueOnGameThread();
 	
 	// Create a local boolean to see if an input type reset was necessary, defaulting it to whether the auto deduce value is set
 	bool IsAutoDetected = (GivenInputTypeOverride < 0);
 
 	// If our current type override is far too great of a number, then reset it back to -1 (auto type finding)
 	if (GivenInputTypeOverride >= static_cast<int32>(EInputType::Num)) {
-		CVarGamepadInputTypeOverride->Set(-1);
+		CVarGamepadInputTypeOverride->SetWithCurrentPriority(-1);
 		IsAutoDetected = true;
 	}
 
@@ -69,16 +67,42 @@ uint8 UInputImageSubsystem::CollectTargetInputType(const int32 & GivenInputTypeO
 			// If we are utilizing a gamepad, then we need to collect on what type of gamepad it is
 			case EBaseInputTypes::Gamepad:
 
-				//
-				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 100.0f, FColor::Purple, FString("Gamepad Name: ") + GamepadInputType.ToString());
-
-				// TODO: Implement auto controller type deduction here so that we do not just default to a generic controller
-				return static_cast<uint8>(EInputType::XboxSeriesController);
+				// Automatically deduce our current gamepad type (or default) and return it
+				return static_cast<uint8>(DeduceGamepadType());
 		}
 	}
 
-	// Else, our given override is a valid override amount and must be 
+	// Else, our given override is a valid override amount and must be returned
 	return static_cast<uint8>(GivenInputTypeOverride);
+}
+
+
+// 
+TObjectPtr<UTexture2D> UInputImageSubsystem::GetExactInputImage(const FKey & GivenKey) const {
+
+	//
+	if (GivenKey.IsValid() == false) {
+		return InvalidInputImage.LoadSynchronous();
+	}
+
+	// If the given key type is a touch input, then...
+	else if (GivenKey.IsTouch()) {
+
+		// Simply return an invalid input image currently, as we do not support this yet
+		return InvalidInputImage.LoadSynchronous();
+	}
+
+	// Else, if the current key type is either a gamepad key or analog, then...
+	else if (GivenKey.IsGamepadKey() || GivenKey.IsAnalog()) {
+
+		// Deduce our current gamepad type and return
+		return GlobalInputImageMapArray[static_cast<uint8>(DeduceGamepadType())].FindChecked(GivenKey).LoadSynchronous();
+	}
+
+	// Else, we assume to be utilizing keyboard and mouse, in which case we just collect the relevant key and load it
+	else {
+		return GlobalInputImageMapArray[static_cast<uint8>(EInputType::KeyboardAndMouse)].FindChecked(GivenKey).LoadSynchronous();
+	}
 }
 
 
@@ -90,9 +114,6 @@ TObjectPtr<UTexture2D> UInputImageSubsystem::GetFirstInputImage(const UInputMapp
 
 	// Ensure that the current local player is valid, as it always should be (only for testing/debug builds)
 	check(IsValid(CurrentLocalPlayer));
-
-	// Locally store a constant copy of the current gamepad console variable setting value for improved memory and computational performance
-	const int32 CurrentGamepadInputTypeOverride = CVarGamepadInputTypeOverride.GetValueOnGameThread();
 	
 	// Loop through all action key mappings for the given input mapping, and...
 	for(const FEnhancedActionKeyMapping & Element : GivenMapping->GetMappings()) {
@@ -128,7 +149,7 @@ TObjectPtr<UTexture2D> UInputImageSubsystem::GetFirstInputImage(const UInputMapp
 
 			// Finally, collect our target soft reference to the wanted texture and load it into memory, returning the new UTexture2D object pointer
 			// NOTE: LoadSynchronous is the same as .Get(), but will also synchronously load the texture if it is not fully loaded yet
-			return GlobalInputImageMapArray[CollectTargetInputType(CurrentGamepadInputTypeOverride)].FindChecked(Element.Key).LoadSynchronous();
+			return GlobalInputImageMapArray[CollectTargetInputType()].FindChecked(Element.Key).LoadSynchronous();
 		}
 	}
 
@@ -148,9 +169,6 @@ TArray<TObjectPtr<UTexture2D>> UInputImageSubsystem::GetAllInputImages(const UIn
 
 	// Create a local array of object pointers to store all found input images into
 	TArray<TObjectPtr<UTexture2D>> LocalTexturePointerArray;
-
-	// Locally store a constant copy of the current gamepad console variable setting value for improved memory and computational performance
-	const int32 CurrentGamepadInputTypeOverride = CVarGamepadInputTypeOverride.GetValueOnGameThread();
 
 	// Loop through all action key mappings for the given input mapping, and...
 	for(const FEnhancedActionKeyMapping & Element : GivenMapping->GetMappings()) {
@@ -186,7 +204,7 @@ TArray<TObjectPtr<UTexture2D>> UInputImageSubsystem::GetAllInputImages(const UIn
 
 			// Finally, collect our target soft reference to the wanted texture and load it into memory, returning the new UTexture2D object pointer
 			// NOTE: LoadSynchronous is the same as .Get(), but will also synchronously load the texture if it is not fully loaded yet
-			LocalTexturePointerArray.Push(GlobalInputImageMapArray[CollectTargetInputType(CurrentGamepadInputTypeOverride)].FindChecked(Element.Key).LoadSynchronous());
+			LocalTexturePointerArray.Push(GlobalInputImageMapArray[CollectTargetInputType()].FindChecked(Element.Key).LoadSynchronous());
 		}
 	}
 
@@ -281,11 +299,9 @@ void UInputImageSubsystem::SetCurrentInputType(const EBaseInputTypes GivenInputT
 
 			// 
 			FSlateApplication & SlateApplication = FSlateApplication::Get();
-			ULocalPlayer * LocalPlayer = GetLocalPlayerChecked();
-			const bool bCursorUser = (LocalPlayer && LocalPlayer->GetSlateUser() == SlateApplication.GetCursorUser());
 
 			// 
-			if (bCursorUser)
+			if (ULocalPlayer * LocalPlayer = GetLocalPlayerChecked(); (LocalPlayer && LocalPlayer->GetSlateUser() == SlateApplication.GetCursorUser()))
 				SlateApplication.UsePlatformCursorForCursorUser(true);
 		}
 
@@ -347,6 +363,17 @@ void UInputImageSubsystem::SetGamepadInputType(const FName GivenInputTypeName) {
 		// Send out notifications so we update our buttons
 		BroadcastInputMethodChanged();
 	}
+}
+
+
+// 
+EInputType UInputImageSubsystem::DeduceGamepadType() const {
+
+	//
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 100.0f, FColor::Purple, FString("Gamepad Name: ") + GamepadInputType.ToString());
+
+	// 
+	return EInputType::XboxSeriesController;
 }
 
 

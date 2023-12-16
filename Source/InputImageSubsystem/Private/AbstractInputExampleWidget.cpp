@@ -14,8 +14,10 @@ bool UAbstractInputExampleWidget::Initialize() {
 	const bool ReturnValue = Super::Initialize();
 
 	// Editor Only - Ensures that the item does not crash if the owning local player is invalid
+#if WITH_EDITOR
 	if (IsValid(GetOwningLocalPlayer()) == false)
 		return ReturnValue;
+#endif
 	
 	// Store a class pointer to the current player's common input subsystem
 	UInputImageSubsystem * CurrentInputImageSubsystem = GetOwningLocalPlayer()->GetSubsystem<UInputImageSubsystem>();
@@ -30,7 +32,7 @@ bool UAbstractInputExampleWidget::Initialize() {
 	RenderWantedInputs(CurrentInputImageSubsystem);
 
 	// Finally, set the input example's text to the relevant widgets
-	InputExampleText->SetText(IsValid(OwningInputAction) ? OwningInputAction->ActionDescription : FText::GetEmpty());
+	InputExampleText->SetText(InputName);
 
 	// Finally, return the parent created value
 	return ReturnValue;

@@ -25,12 +25,16 @@ class INPUTIMAGESUBSYSTEM_API UAbstractInputExampleWidget : public UUserWidget {
 protected:
 
 	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
 	UInputMappingContext * OwningInputMapping = nullptr;
 
 	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
 	UInputAction * OwningInputAction = nullptr;
+
+	//
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+	FText InputName;
 
 	//
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

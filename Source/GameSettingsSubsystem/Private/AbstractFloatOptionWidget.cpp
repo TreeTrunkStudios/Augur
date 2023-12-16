@@ -11,6 +11,16 @@ bool UAbstractFloatOptionWidget::Initialize() {
 	//
 	const bool ReturnValue = Super::Initialize();
 
+	// Editor Only - Ensures that the item does not crash if the owning local player is invalid
+#if WITH_EDITOR
+	if (IsValid(GetOwningLocalPlayer()) == false)
+		return ReturnValue;
+#endif
+
+	//
+	SpinBox->SetValue(SettingsOptionConsoleVariable->GetFloat());
+	HandleStateUpdate(SpinBox->GetValue());
+	
 	//
 	SpinBox->OnValueChanged.AddDynamic(this, &UAbstractFloatOptionWidget::HandleStateUpdate);
 	SpinBox->OnValueCommitted.AddDynamic(this, &UAbstractFloatOptionWidget::HandleStateChange);
@@ -31,4 +41,10 @@ void UAbstractFloatOptionWidget::HandleStateUpdate(float NewState) {
 // 
 void UAbstractFloatOptionWidget::HandleStateChange(float NewState, ETextCommit::Type CommitType) {
 	SettingsOptionConsoleVariable->SetWithCurrentPriority(NewState);
+}
+
+
+// 
+void UAbstractFloatOptionWidget::UpdateToTargetLevel(const ESettingsLevel & GivenSettingsLevel) {
+	SpinBox->SetValue(SettingsLevelValues[static_cast<uint8>(GivenSettingsLevel)]);
 }

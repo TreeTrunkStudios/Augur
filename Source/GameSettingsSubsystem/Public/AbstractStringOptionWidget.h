@@ -21,8 +21,12 @@ class GAMESETTINGSSUBSYSTEM_API UAbstractStringOptionWidget : public UAbstractSe
 protected:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(BindWidget))
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	UEditableTextBox * EditableTextBox;
+
+	// 
+	UPROPERTY(EditInstanceOnly, meta=(ArraySizeEnum="ESettingsLevel"))
+	FString SettingsLevelValues[static_cast<uint8>(ESettingsLevel::Num)];
 
 
 //
@@ -38,4 +42,11 @@ protected:
 	//
 	UFUNCTION()
 	void HandleStateChange(const FText & NewState, ETextCommit::Type CommitMethod);
+
+
+//
+public:	
+
+	//
+	virtual void UpdateToTargetLevel(const ESettingsLevel & GivenSettingsLevel) override;
 };

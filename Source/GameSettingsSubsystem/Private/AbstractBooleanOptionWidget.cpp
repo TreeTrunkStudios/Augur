@@ -2,20 +2,26 @@
 
 
 // 
-#include "..\Public\AbstractBooleanOptionWidget.h"
+#include "AbstractBooleanOptionWidget.h"
 
 
 //
-bool UAbstractBooleanSettingsOptionWidget::Initialize() {
+bool UAbstractBooleanOptionWidget::Initialize() {
 
 	//
 	const bool ReturnValue = Super::Initialize();
 
-	//
-	CheckBox->SetCheckedState(SettingsOptionConsoleVariable->GetBool() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+	// Editor Only - Ensures that the item does not crash if the owning local player is invalid
+#if WITH_EDITOR
+	if (IsValid(GetOwningLocalPlayer()) == false)
+		return ReturnValue;
+#endif
 
 	//
-	CheckBox->OnCheckStateChanged.AddDynamic(this, &UAbstractBooleanSettingsOptionWidget::HandleStateChange);
+	CheckBox->SetIsChecked(SettingsOptionConsoleVariable->GetBool());
+
+	//
+	CheckBox->OnCheckStateChanged.AddDynamic(this, &UAbstractBooleanOptionWidget::HandleStateChange);
 
 	// 
 	return ReturnValue;
@@ -23,6 +29,12 @@ bool UAbstractBooleanSettingsOptionWidget::Initialize() {
 
 
 // 
-void UAbstractBooleanSettingsOptionWidget::HandleStateChange(bool NewState) {
+void UAbstractBooleanOptionWidget::HandleStateChange(bool NewState) {
 	SettingsOptionConsoleVariable->SetWithCurrentPriority(NewState);
+}
+
+
+// 
+void UAbstractBooleanOptionWidget::UpdateToTargetLevel(const ESettingsLevel & GivenSettingsLevel) {
+	CheckBox->SetIsChecked(SettingsLevelValues[static_cast<uint8>(GivenSettingsLevel)] != 0);
 }

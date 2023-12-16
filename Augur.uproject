@@ -22,7 +22,8 @@
 				"UMG",
 				"CoreUObject",
 				"InputCore",
-				"EnhancedInput"
+				"EnhancedInput",
+				"InputImageSubsystem"
 			]
 		},
 		{

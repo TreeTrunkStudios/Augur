@@ -615,6 +615,9 @@ public:
 public:
 
 	// 
+	TObjectPtr<UTexture2D> GetExactInputImage(const FKey & GivenKey) const;
+
+	// 
 	TObjectPtr<UTexture2D> GetFirstInputImage(const UInputMappingContext * GivenMapping, const UInputAction * GivenAction) const;
 
 	// 
@@ -670,5 +673,8 @@ protected:
 	bool Tick(float DeltaTime);
 
 	// 
-	uint8 CollectTargetInputType(const int32 & GivenInputTypeOverride) const;
+	uint8 CollectTargetInputType() const;
+
+	//
+	EInputType DeduceGamepadType() const;
 };

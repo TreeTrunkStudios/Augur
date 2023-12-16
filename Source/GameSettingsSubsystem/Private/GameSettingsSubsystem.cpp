@@ -69,7 +69,7 @@ void UGameSettingsSubsystem::ForceSave() {
 
 
 // 
-const FUnionDataStruct CalculateSettingDataTypeFromString(const FString & DataString) {
+const SettingsDataUnion CalculateSettingDataTypeFromString(const FString & DataString) {
 
 	// Locally collect the FCoreTexts singleton for boolean checking
 	const FCoreTexts & CoreTexts = FCoreTexts::Get();
@@ -85,7 +85,7 @@ const FUnionDataStruct CalculateSettingDataTypeFromString(const FString & DataSt
 		FCStringUtf8::Stricmp(LocalString, TEXT("On")) == 0 ||
 		FCStringUtf8::Stricmp(LocalString, *(CoreTexts.True.ToString())) == 0 ||
 		FCStringUtf8::Stricmp(LocalString, *(CoreTexts.Yes.ToString())) == 0) {
-		return FUnionDataStruct{true};
+		return SettingsDataUnion{static_cast<bool>(true)};
 	}
 
 	// Else, if the given string is any form of boolean as false, then return that data
@@ -94,7 +94,7 @@ const FUnionDataStruct CalculateSettingDataTypeFromString(const FString & DataSt
 			 FCStringUtf8::Stricmp(LocalString, TEXT("Off")) == 0 ||
 			 FCStringUtf8::Stricmp(LocalString, *(CoreTexts.False.ToString())) == 0 ||
 			 FCStringUtf8::Stricmp(LocalString, *(CoreTexts.No.ToString())) == 0) {
-		return FUnionDataStruct{false};
+		return SettingsDataUnion{static_cast<bool>(false)};
 	}
 #else
 
@@ -107,7 +107,7 @@ const FUnionDataStruct CalculateSettingDataTypeFromString(const FString & DataSt
 	    FCStringWide::Stricmp(LocalString, TEXT("On")) == 0 ||
 	    FCStringWide::Stricmp(LocalString, *(CoreTexts.True.ToString())) == 0 ||
 	    FCStringWide::Stricmp(LocalString, *(CoreTexts.Yes.ToString())) == 0) {
-		return FUnionDataStruct{static_cast<bool>(true)};
+		return SettingsDataUnion{static_cast<bool>(true)};
 	}
 
 	// Else, if the given string is any form of boolean as false, then return that data
@@ -116,7 +116,7 @@ const FUnionDataStruct CalculateSettingDataTypeFromString(const FString & DataSt
 		     FCStringWide::Stricmp(LocalString, TEXT("Off")) == 0 ||
 		     FCStringWide::Stricmp(LocalString, *(CoreTexts.False.ToString())) == 0 ||
 		     FCStringWide::Stricmp(LocalString, *(CoreTexts.No.ToString())) == 0) {
-		return FUnionDataStruct{static_cast<bool>(false)};
+		return SettingsDataUnion{static_cast<bool>(false)};
 	}
 #endif
 
@@ -127,24 +127,24 @@ const FUnionDataStruct CalculateSettingDataTypeFromString(const FString & DataSt
 		// Check if the data contains a period, in which case it is a float, so return the data as a float
 		if (DataString.Contains(TEXT("."))) {
 #if PLATFORM_TCHAR_IS_UTF8CHAR
-			return FUnionDataStruct{FCStringUtf8::Atof(StringCast<UTF8CHAR>(*DataString).Get())};
+			return SettingsDataUnion{FCStringUtf8::Atof(StringCast<UTF8CHAR>(*DataString).Get())};
 #else
-			return FUnionDataStruct{FCStringWide::Atof(*DataString)};
+			return SettingsDataUnion{FCStringWide::Atof(*DataString)};
 #endif
 		}
 
 		// Else, we are dealing with an integer of some sorts, so return the data as an integer
 		else {
 #if PLATFORM_TCHAR_IS_UTF8CHAR
-			return FUnionDataStruct{FCStringUtf8::Atoi(StringCast<UTF8CHAR>(*DataString).Get())};
+			return SettingsDataUnion{FCStringUtf8::Atoi(StringCast<UTF8CHAR>(*DataString).Get())};
 #else
-			return FUnionDataStruct{FCStringWide::Atoi(*DataString)};
+			return SettingsDataUnion{FCStringWide::Atoi(*DataString)};
 #endif
 		}
 	}
 
 	// Else, just assume it's a string and move on
-	return FUnionDataStruct{DataString};
+	return SettingsDataUnion{DataString};
 }
 
 
@@ -174,37 +174,37 @@ void UGameSettingsSubsystem::ForceLoad() {
 			IConsoleVariable * CurrentConsoleVariable = IConsoleManager::Get().FindConsoleVariable(VariableName);
 
 			// Calculate what the data type actually is
-			const FUnionDataStruct LocalUnionDataStruct = CalculateSettingDataTypeFromString(FString(VariableValue));
+			const SettingsDataUnion LocalUnionDataStruct = CalculateSettingDataTypeFromString(FString(VariableValue));
 
 			// Switch on the type of data this contains
-			switch (LocalUnionDataStruct.DataType) {
+			switch (LocalUnionDataStruct.GetCurrentSubtypeIndex()) {
 
 				// If boolean, then set is as boolean data and apply it to the console variable, if valid
-				case USettingDataTypeEnum::Boolean:
-					CurrentSettingsOption.SetSubtype<bool>(LocalUnionDataStruct.BooleanData);
-					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(LocalUnionDataStruct.BooleanData, ECVF_SetByConsole);
-					GConfig->SetBool(*CurrentSection, VariableName, LocalUnionDataStruct.BooleanData, CurrentIniFileName);
+				case 0:
+					CurrentSettingsOption.SetSubtype<bool>(LocalUnionDataStruct.GetSubtype<bool>());
+					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(LocalUnionDataStruct.GetSubtype<bool>(), ECVF_SetByConsole);
+					GConfig->SetBool(*CurrentSection, VariableName, LocalUnionDataStruct.GetSubtype<bool>(), CurrentIniFileName);
 					break;
 
 				// If integer, then set is as integer data and apply it to the console variable, if valid
-				case USettingDataTypeEnum::Integer:
-					CurrentSettingsOption.SetSubtype<int32>(LocalUnionDataStruct.IntegerData);
-					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(LocalUnionDataStruct.IntegerData, ECVF_SetByConsole);
-					GConfig->SetInt(*CurrentSection, VariableName, LocalUnionDataStruct.IntegerData, CurrentIniFileName);
+				case 1:
+					CurrentSettingsOption.SetSubtype<int32>(LocalUnionDataStruct.GetSubtype<int32>());
+					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(LocalUnionDataStruct.GetSubtype<int32>(), ECVF_SetByConsole);
+					GConfig->SetInt(*CurrentSection, VariableName, LocalUnionDataStruct.GetSubtype<int32>(), CurrentIniFileName);
 					break;
 
 				// If float, then set is as float data and apply it to the console variable, if valid
-				case USettingDataTypeEnum::Float:
-					CurrentSettingsOption.SetSubtype<float>(LocalUnionDataStruct.FloatData);
-					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(LocalUnionDataStruct.FloatData, ECVF_SetByConsole);
-					GConfig->SetFloat(*CurrentSection, VariableName, LocalUnionDataStruct.FloatData, CurrentIniFileName);
+				case 2:
+					CurrentSettingsOption.SetSubtype<float>(LocalUnionDataStruct.GetSubtype<float>());
+					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(LocalUnionDataStruct.GetSubtype<float>(), ECVF_SetByConsole);
+					GConfig->SetFloat(*CurrentSection, VariableName, LocalUnionDataStruct.GetSubtype<float>(), CurrentIniFileName);
 					break;
 
 				// If string, then set is as string data and apply it to the console variable, if valid
-				case USettingDataTypeEnum::String:
-					CurrentSettingsOption.SetSubtype<FString>(LocalUnionDataStruct.StringData);
-					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(*LocalUnionDataStruct.StringData, ECVF_SetByConsole);
-					GConfig->SetString(*CurrentSection, VariableName, *LocalUnionDataStruct.StringData, CurrentIniFileName);
+				case 3:
+					CurrentSettingsOption.SetSubtype<FString>(LocalUnionDataStruct.GetSubtype<FString>());
+					if (CurrentConsoleVariable) CurrentConsoleVariable->Set(*LocalUnionDataStruct.GetSubtype<FString>(), ECVF_SetByConsole);
+					GConfig->SetString(*CurrentSection, VariableName, *LocalUnionDataStruct.GetSubtype<FString>(), CurrentIniFileName);
 					break;
 
 				// Else, ignore it, as something has gone horribly wrong
@@ -233,77 +233,4 @@ void UGameSettingsSubsystem::SetCurrentGameID(const FString & NewGameID) {
 
 	// Finally, force loading the new settings menu save game information
 	this->ForceLoad();
-}
-
-
-// 
-const FUnionDataStruct UGameSettingsSubsystem::GetSettingData(FName SectionName, FName VariableName) {
-
-	// Internally collect the settings data properly
-	const SettingsDataUnion & InnerData = GetSettingData_Internal(SectionName, VariableName);
-
-	// We need to figure out what type of data this is...
-	switch (InnerData.GetCurrentSubtypeIndex()) {
-
-		// It is a bool, so return such
-		case 0:
-			return FUnionDataStruct{ InnerData.GetSubtype<bool>() };
-			break;
-
-		// It is an integer, so return such
-		case 1:
-			return FUnionDataStruct{ InnerData.GetSubtype<int32>() };
-			break;
-
-		// It is a float, so return such
-		case 2:
-			return FUnionDataStruct{ InnerData.GetSubtype<float>() };
-			break;
-
-		// It is a string, so return such
-		case 3:
-			return FUnionDataStruct{ InnerData.GetSubtype<FString>() };
-			break;
-
-		// Else, go to the leftover return
-		default:
-			break;
-	}
-
-	// 
-	return FUnionDataStruct{};
-}
-
-
-// 
-void UGameSettingsSubsystem::SetSettingData(FName SectionName, FName VariableName, FUnionDataStruct VariableData) {
-
-	// Change functionality based off what type of data we are dealing with
-	switch (VariableData.DataType) {
-	
-		// If the relying setting's data type is a boolean, then set it
-		case USettingDataTypeEnum::Boolean:
-			SetSettingData_Internal<bool>(SectionName, VariableName, VariableData.BooleanData);
-			break;
-
-		// Else, if the relying setting's data type is an integer, then set it
-		case USettingDataTypeEnum::Integer:
-			SetSettingData_Internal<int32>(SectionName, VariableName, VariableData.IntegerData);
-			break;
-
-		// Else, if the relying setting's data type is a float, then set it
-		case USettingDataTypeEnum::Float:
-			SetSettingData_Internal<float>(SectionName, VariableName, VariableData.FloatData);
-			break;
-
-		// Else, if the relying setting's data type is a string, then set it
-		case USettingDataTypeEnum::String:
-			SetSettingData_Internal<FString>(SectionName, VariableName, VariableData.StringData);
-			break;
-
-		// Else, the target's data type is an error, so collapse this widget, as it is invalid, technically
-		case USettingDataTypeEnum::ERROR:
-		default:
-			break;
-	}
 }

@@ -12,6 +12,19 @@
 #include "AbstractSettingsOptionWidget.generated.h"
 
 
+//
+UENUM(BlueprintType, Blueprintable)
+enum class ESettingsLevel : uint8 {
+	Low,
+	Medium,
+	High,
+	Ultra,
+	Perfection,
+	Custom,
+	Num UMETA(Hidden)
+};
+
+
 // 
 UCLASS(Abstract, EditInlineNew, DefaultToInstanced, meta=(DontUseGenericSpawnObject="True", DisableNativeTick))
 class GAMESETTINGSSUBSYSTEM_API UAbstractSettingsOptionWidget : public UUserWidget {
@@ -21,23 +34,27 @@ class GAMESETTINGSSUBSYSTEM_API UAbstractSettingsOptionWidget : public UUserWidg
 protected:
 
 	// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(BindWidget))
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
 	UTextBlock * NameText;
 
 	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
 	UTextBlock * DescriptionTextWidget;
 
 	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+	FText VariableNameText;
+
+	//
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
 	FText DescriptionText;
 
 	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
 	FName ConsoleCommand;
 
 	//
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
 	FName SectionName;
 
 
@@ -48,6 +65,15 @@ protected:
 	IConsoleVariable * SettingsOptionConsoleVariable;
 
 
+//
+public:
+
+	//
+	FORCEINLINE IConsoleVariable * GetSettingsOptionConsoleVariable() const {
+		return SettingsOptionConsoleVariable;
+	}
+
+
 // Protected section for handling all C++ functions
 protected:
 
@@ -56,4 +82,11 @@ protected:
 
 	//
 	virtual void NativeOnAddedToFocusPath(const FFocusEvent & InFocusEvent) override;
+
+
+//
+public:
+
+	//
+	virtual void UpdateToTargetLevel(const ESettingsLevel & GivenSettingsLevel) {};
 };
