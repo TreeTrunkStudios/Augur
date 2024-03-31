@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{5D598DD7-45E2-2DE9-88FF-F79EF5608E2C}",
+	"EngineAssociation": "{9F25633A-4844-623C-E6DB-33A12A95B80E}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -120,14 +120,6 @@
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "VisualStudioTools",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/362651520df94e4fa65492dbcba44ae2",
-			"SupportedTargetPlatforms": [
-				"Win64"
-			]
-		},
 		{
 			"Name": "CommonUI",
 			"Enabled": false
